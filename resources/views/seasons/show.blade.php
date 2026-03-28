@@ -43,7 +43,7 @@
     </section>
 
     <section class="kfc-card">
-        <h2 class="kfc-section-title">試合一覧</h2>
+        <h2 class="kfc-section-title">試合結果一覧</h2>
         <div class="mt-6 space-y-3">
             @forelse ($matches as $m)
                 <div class="kfc-card-nested">
@@ -71,4 +71,6 @@
             @endforelse
         </div>
     </section>
+
+    @include('partials.season_catch_feed_section', ['seasonCatchFeed' => $seasonCatchFeed])
 @endsection

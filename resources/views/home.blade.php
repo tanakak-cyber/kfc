@@ -9,7 +9,7 @@
         <div class="relative">
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300/90">ブラックバス釣り大会</p>
             <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">{{ $siteTeamName }}</h1>
-            <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 sm:text-base">シーズン・試合・チーム・釣果を一元管理。ランキングは合計重量（上位3本）で決定します。</p>
+            <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 sm:text-base">{{ $siteHomeTagline }}</p>
         </div>
     </section>
 
@@ -17,7 +17,9 @@
         <div class="border-b border-zinc-100 pb-6">
             <h2 class="kfc-section-title">現在シーズン</h2>
             @if ($currentSeason)
-                <p class="mt-3 text-2xl font-bold tracking-tight text-zinc-900">{{ $currentSeason->name }}</p>
+                <p class="mt-3 text-2xl font-bold tracking-tight">
+                    <a href="{{ route('seasons.show', $currentSeason) }}" class="kfc-link">{{ $currentSeason->name }}</a>
+                </p>
                 <p class="mt-1 text-sm text-zinc-600">{{ $currentSeason->starts_on->format('Y/m/d') }} — {{ $currentSeason->ends_on->format('Y/m/d') }}</p>
                 @if (filled($currentSeason->description))
                     <p class="mt-4 text-sm leading-relaxed text-zinc-700">{{ \Illuminate\Support\Str::limit($currentSeason->description, 160) }}</p>
@@ -61,6 +63,10 @@
             @endforelse
         </ul>
     </section>
+
+    @if ($currentSeason)
+        @include('partials.season_catch_feed_section', ['seasonCatchFeed' => $seasonCatchFeed])
+    @endif
 
     <section class="kfc-card mt-10">
         <h2 class="kfc-section-title">過去シーズン</h2>

@@ -41,6 +41,38 @@
     </dl>
 
     <section class="kfc-card mt-10">
+        <h2 class="kfc-section-title">釣果（承認済み）</h2>
+        <p class="kfc-muted mt-2">試合ごとの投稿です。写真は横にスワイプして切り替えられます。</p>
+        @if ($playerCatches->isEmpty())
+            <p class="kfc-muted mt-6">まだ承認済みの釣果がありません。</p>
+        @else
+            <div class="mt-6 grid gap-6 sm:grid-cols-2">
+                @foreach ($playerCatches as $catch)
+                    @php
+                        $catchUrls = $catch->images->map(fn ($im) => asset('storage/'.$im->path))->values()->all();
+                    @endphp
+                    <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-md shadow-zinc-950/5 ring-1 ring-zinc-950/[0.03]">
+                        @include('partials.catch_image_slider', ['urls' => $catchUrls, 'sliderId' => 'catch-'.$catch->id, 'roundedTop' => true])
+                        <div class="space-y-1 border-t border-zinc-100 p-4 text-sm">
+                            <p>
+                                <a href="{{ route('matches.show', $catch->gameMatch) }}" class="kfc-link font-semibold">{{ $catch->gameMatch->title }}</a>
+                            </p>
+                            <p class="text-xs text-zinc-500">
+                                {{ $catch->gameMatch->held_at->format('Y/m/d H:i') }}
+                                @if ($catch->gameMatch->season)
+                                    · {{ $catch->gameMatch->season->name }}
+                                @endif
+                                · {{ $catch->team->name }}
+                            </p>
+                            <p class="mt-2 text-zinc-700">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_kg }} kg</p>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
+
+    <section class="kfc-card mt-10">
         <h2 class="kfc-section-title">試合別成績</h2>
         <div class="kfc-table-shell mt-6 overflow-x-auto">
             <table class="min-w-full text-left text-sm">

@@ -88,22 +88,7 @@
                     $catchUrls = $catch->images->map(fn ($im) => asset('storage/'.$im->path))->values()->all();
                 @endphp
                 <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-md shadow-zinc-950/5 ring-1 ring-zinc-950/[0.03]">
-                    @if (count($catchUrls) > 0)
-                        <div class="{{ count($catchUrls) === 1 ? '' : 'grid grid-cols-2 gap-0.5' }}">
-                            @foreach ($catch->images as $idx => $im)
-                                @php $catchImgUrl = asset('storage/'.$im->path); @endphp
-                                <img
-                                    src="{{ $catchImgUrl }}"
-                                    alt=""
-                                    class="{{ count($catchUrls) === 1 ? 'aspect-video w-full' : 'aspect-square w-full' }} cursor-pointer object-cover transition hover:opacity-95"
-                                    role="button"
-                                    tabindex="0"
-                                    onclick='window.kfcOpenImageLightbox(@json($catchUrls), {{ $idx }})'
-                                    onkeydown='if(event.key==="Enter"||event.key===" "){event.preventDefault();window.kfcOpenImageLightbox(@json($catchUrls), {{ $idx }});}'
-                                >
-                            @endforeach
-                        </div>
-                    @endif
+                    @include('partials.catch_image_slider', ['urls' => $catchUrls, 'sliderId' => 'catch-'.$catch->id, 'roundedTop' => true])
                     <div class="border-t border-zinc-100 p-4 text-sm">
                         <p class="font-semibold text-zinc-900">{{ $catch->player->displayLabel() }}</p>
                         <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_kg }} kg</p>

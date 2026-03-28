@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GameMatch;
 use App\Models\Season;
 use App\Models\SeasonPlayerPoint;
+use App\Support\SeasonCatchFeed;
 use App\Support\SeasonPlayerCatchStats;
 use App\Support\SeasonPlayerStandings;
 use Illuminate\View\View;
@@ -17,7 +18,9 @@ class HomeController extends Controller
 
         $seasonStandings = collect();
         $seasonCatchStats = collect();
+        $seasonCatchFeed = collect();
         if ($currentSeason) {
+            $seasonCatchFeed = SeasonCatchFeed::approvedForSeason($currentSeason->id);
             $seasonStandings = SeasonPlayerPoint::query()
                 ->where('season_id', $currentSeason->id)
                 ->with('player')
@@ -44,6 +47,7 @@ class HomeController extends Controller
             'currentSeason',
             'seasonStandings',
             'seasonCatchStats',
+            'seasonCatchFeed',
             'recentMatches',
             'pastSeasons'
         ));

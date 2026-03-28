@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Support\SiteHomeTagline;
 use App\Support\SiteTeamName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -21,8 +22,18 @@ class SiteSettingsController extends Controller
             $teamName = (string) config('app.name');
         }
 
+        $homeTagline = Setting::query()
+            ->where('key', SiteHomeTagline::SETTING_KEY)
+            ->value('value');
+
+        if ($homeTagline === null || $homeTagline === '') {
+            $homeTagline = SiteHomeTagline::DEFAULT;
+        }
+
         return view('admin.site.edit', [
             'teamName' => $teamName,
+            'homeTagline' => $homeTagline,
+            'homeTaglineDefault' => SiteHomeTagline::DEFAULT,
         ]);
     }
 
@@ -30,6 +41,7 @@ class SiteSettingsController extends Controller
     {
         $data = $request->validate([
             'team_name' => ['required', 'string', 'max:120'],
+            'home_tagline' => ['nullable', 'string', 'max:500'],
         ]);
 
         Setting::query()->updateOrCreate(
@@ -37,10 +49,21 @@ class SiteSettingsController extends Controller
             ['value' => $data['team_name']]
         );
 
+        $tagline = isset($data['home_tagline']) ? trim((string) $data['home_tagline']) : '';
+        if ($tagline === '') {
+            Setting::query()->where('key', SiteHomeTagline::SETTING_KEY)->delete();
+        } else {
+            Setting::query()->updateOrCreate(
+                ['key' => SiteHomeTagline::SETTING_KEY],
+                ['value' => $tagline]
+            );
+        }
+
         SiteTeamName::forgetCache();
+        SiteHomeTagline::forgetCache();
 
         return redirect()
             ->route('admin.site.edit')
-            ->with('status', 'チーム名を保存しました。');
+            ->with('status', 'サイト設定を保存しました。');
     }
 }

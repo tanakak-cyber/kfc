@@ -108,11 +108,16 @@
 
     window.kfcOpenImageGallery = function (urls, startIndex) {
         if (!urls || !urls.length) return;
+        if (!Array.isArray(urls)) {
+            urls = [urls];
+        }
         var r = root();
         var i = img();
         if (!r || !i) return;
         state.urls = urls.slice();
-        state.index = Math.max(0, Math.min(typeof startIndex === 'number' ? startIndex : 0, state.urls.length - 1));
+        var idx = typeof startIndex === 'number' ? startIndex : parseInt(startIndex, 10);
+        if (isNaN(idx)) idx = 0;
+        state.index = Math.max(0, Math.min(idx, state.urls.length - 1));
         state.open = true;
         updateUi();
         r.classList.remove('hidden');
@@ -122,7 +127,9 @@
 
     window.kfcOpenImageLightbox = function (srcOrUrls, startIndex) {
         if (Array.isArray(srcOrUrls)) {
-            window.kfcOpenImageGallery(srcOrUrls, typeof startIndex === 'number' ? startIndex : 0);
+            var idx = typeof startIndex === 'number' ? startIndex : parseInt(startIndex, 10);
+            if (isNaN(idx)) idx = 0;
+            window.kfcOpenImageGallery(srcOrUrls, idx);
         } else if (srcOrUrls) {
             window.kfcOpenImageGallery([srcOrUrls], 0);
         }

@@ -40,12 +40,21 @@ class PlayerProfileController extends Controller
             ->sortByDesc(fn ($row) => $row['match']->held_at)
             ->values();
 
+        $playerCatches = FishCatch::query()
+            ->where('player_id', $player->id)
+            ->where('approval_status', CatchApprovalStatus::Approved)
+            ->with(['gameMatch.season', 'team', 'images'])
+            ->get()
+            ->sortByDesc(fn (FishCatch $c) => ($c->gameMatch->held_at->timestamp * 1_000_000) + $c->id)
+            ->values();
+
         return view('players.show', compact(
             'player',
             'totalCatches',
             'maxLength',
             'maxWeight',
-            'perMatch'
+            'perMatch',
+            'playerCatches'
         ));
     }
 }
