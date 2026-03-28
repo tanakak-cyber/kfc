@@ -3,13 +3,13 @@
 @section('title', $player->displayLabel())
 
 @section('content')
-    <div class="flex flex-col gap-4 sm:flex-row sm:items-center">
+    <div class="flex flex-col gap-5 sm:flex-row sm:items-center">
         @if ($player->icon)
             @php $iconUrl = asset('storage/'.$player->icon); @endphp
             <img
                 src="{{ $iconUrl }}"
                 alt=""
-                class="h-20 w-20 shrink-0 cursor-pointer rounded-full object-cover ring-2 ring-slate-200 hover:opacity-95"
+                class="h-24 w-24 shrink-0 cursor-pointer rounded-2xl object-cover shadow-lg ring-2 ring-zinc-200/80 transition hover:opacity-95"
                 role="button"
                 tabindex="0"
                 onclick="window.kfcOpenImageLightbox({{ json_encode($iconUrl) }})"
@@ -17,54 +17,54 @@
             >
         @endif
         <div>
-            <h1 class="text-2xl font-bold text-slate-900">{{ $player->displayLabel() }}</h1>
+            <h1 class="kfc-page-title">{{ $player->displayLabel() }}</h1>
             @if (filled($player->display_name))
-                <p class="text-sm text-slate-500">本名: {{ $player->name }}</p>
+                <p class="kfc-muted mt-1">本名: {{ $player->name }}</p>
             @endif
         </div>
     </div>
-    <p class="mt-2 text-sm text-slate-600">承認済み釣果に基づく個人成績</p>
+    <p class="mt-3 text-sm text-zinc-600">承認済み釣果に基づく個人成績</p>
 
-    <dl class="mt-6 grid gap-4 sm:grid-cols-3">
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <dt class="text-xs text-slate-500">総釣果数</dt>
-            <dd class="text-2xl font-semibold">{{ $totalCatches }}</dd>
+    <dl class="mt-8 grid gap-4 sm:grid-cols-3">
+        <div class="kfc-card-sm text-center sm:text-left">
+            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">総釣果数</dt>
+            <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900">{{ $totalCatches }}</dd>
         </div>
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <dt class="text-xs text-slate-500">最大長さ（cm）</dt>
-            <dd class="text-2xl font-semibold">{{ $maxLength ?? '—' }}</dd>
+        <div class="kfc-card-sm text-center sm:text-left">
+            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">最大長さ（cm）</dt>
+            <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900">{{ $maxLength ?? '—' }}</dd>
         </div>
-        <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-            <dt class="text-xs text-slate-500">最大重さ（kg）</dt>
-            <dd class="text-2xl font-semibold">{{ $maxWeight ?? '—' }}</dd>
+        <div class="kfc-card-sm text-center sm:text-left">
+            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">最大重さ（kg）</dt>
+            <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900">{{ $maxWeight ?? '—' }}</dd>
         </div>
     </dl>
 
-    <section class="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-        <h2 class="text-lg font-semibold">試合別成績</h2>
-        <div class="mt-4 overflow-x-auto">
+    <section class="kfc-card mt-10">
+        <h2 class="kfc-section-title">試合別成績</h2>
+        <div class="kfc-table-shell mt-6 overflow-x-auto">
             <table class="min-w-full text-left text-sm">
-                <thead class="border-b text-slate-500">
+                <thead class="kfc-thead">
                     <tr>
-                        <th class="py-2 pr-4">試合</th>
-                        <th class="py-2 pr-4">本数</th>
-                        <th class="py-2 pr-4">最大長さ</th>
-                        <th class="py-2">最大重さ</th>
+                        <th class="px-4 py-3">試合</th>
+                        <th class="px-4 py-3">本数</th>
+                        <th class="px-4 py-3">最大長さ</th>
+                        <th class="px-4 py-3">最大重さ</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($perMatch as $row)
-                        <tr class="border-b border-slate-100">
-                            <td class="py-2 pr-4">
-                                <a href="{{ route('matches.show', $row['match']) }}" class="text-sky-700 hover:underline">{{ $row['match']->title }}</a>
+                        <tr class="kfc-trow">
+                            <td class="px-4 py-3">
+                                <a href="{{ route('matches.show', $row['match']) }}" class="kfc-link">{{ $row['match']->title }}</a>
                             </td>
-                            <td class="py-2 pr-4">{{ $row['count'] }}</td>
-                            <td class="py-2 pr-4">{{ $row['max_length'] }}</td>
-                            <td class="py-2">{{ $row['max_weight'] }}</td>
+                            <td class="px-4 py-3 tabular-nums">{{ $row['count'] }}</td>
+                            <td class="px-4 py-3 tabular-nums">{{ $row['max_length'] }}</td>
+                            <td class="px-4 py-3 tabular-nums">{{ $row['max_weight'] }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="py-4 text-slate-500">データがありません。</td>
+                            <td colspan="4" class="px-4 py-6 kfc-muted">データがありません。</td>
                         </tr>
                     @endforelse
                 </tbody>

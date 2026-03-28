@@ -8,6 +8,8 @@ use App\Models\Team;
 use App\Services\CatchImageProcessor;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 
 class EntryController extends Controller
@@ -46,24 +48,41 @@ class EntryController extends Controller
             'player_id' => ['required', 'integer', 'in:'.implode(',', $playerIds)],
             'length_cm' => ['required', 'numeric', 'min:0', 'max:999'],
             'weight_kg' => ['required', 'numeric', 'min:0', 'max:999'],
-            'photo' => ['required', 'image', 'max:10240'],
+            'photos' => ['required', 'array', 'min:1', 'max:10'],
+            'photos.*' => ['file', 'image', 'max:10240'],
         ]);
 
-        $path = $this->images->processAndStore($request->file('photo'));
+        try {
+            DB::transaction(function () use ($request, $team, $validated): void {
+                $catch = FishCatch::query()->create([
+                    'match_id' => $team->match_id,
+                    'team_id' => $team->id,
+                    'player_id' => (int) $validated['player_id'],
+                    'length_cm' => $validated['length_cm'],
+                    'weight_kg' => $validated['weight_kg'],
+                    'approval_status' => CatchApprovalStatus::Pending,
+                ]);
 
-        $catch = FishCatch::query()->create([
-            'match_id' => $team->match_id,
-            'team_id' => $team->id,
-            'player_id' => (int) $validated['player_id'],
-            'length_cm' => $validated['length_cm'],
-            'weight_kg' => $validated['weight_kg'],
-            'approval_status' => CatchApprovalStatus::Pending,
-        ]);
+                foreach ($request->file('photos', []) as $sort => $file) {
+                    if (! $file || ! $file->isValid()) {
+                        continue;
+                    }
+                    $path = $this->images->processAndStore($file);
+                    $catch->images()->create([
+                        'path' => $path,
+                        'sort_order' => (int) $sort,
+                    ]);
+                }
 
-        $catch->images()->create([
-            'path' => $path,
-            'sort_order' => 0,
-        ]);
+                if ($catch->images()->count() === 0) {
+                    throw ValidationException::withMessages([
+                        'photos' => ['画像を1枚以上正しくアップロードしてください。'],
+                    ]);
+                }
+            });
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        }
 
         return back()->with('status', '釣果を送信しました。承認後に公開されます。');
     }

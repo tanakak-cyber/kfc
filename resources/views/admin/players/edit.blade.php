@@ -3,25 +3,25 @@
 @section('title', '選手編集')
 
 @section('content')
-    <h1 class="text-2xl font-bold">選手編集</h1>
-    <form method="post" action="{{ route('admin.players.update', $player) }}" enctype="multipart/form-data" class="mt-6 max-w-md space-y-4 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h1 class="kfc-page-title">選手編集</h1>
+    <form method="post" action="{{ route('admin.players.update', $player) }}" enctype="multipart/form-data" class="kfc-card mt-8 max-w-lg space-y-5">
         @csrf
         @method('put')
         <div>
-            <label class="block text-sm font-medium">名前（本名・管理用）</label>
-            <input type="text" name="name" value="{{ old('name', $player->name) }}" required class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <label class="kfc-label">名前（本名・管理用）</label>
+            <input type="text" name="name" value="{{ old('name', $player->name) }}" required class="kfc-input mt-2">
         </div>
         <div>
-            <label class="block text-sm font-medium">表示名</label>
-            <input type="text" name="display_name" value="{{ old('display_name', $player->display_name) }}" class="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <label class="kfc-label">表示名</label>
+            <input type="text" name="display_name" value="{{ old('display_name', $player->display_name) }}" class="kfc-input mt-2">
         </div>
         <div>
-            <label class="block text-sm font-medium">アイコン画像</label>
+            <label class="kfc-label">アイコン画像</label>
             @if ($player->icon)
-                <p class="mt-1 text-xs text-slate-500">現在: {{ $player->icon }}</p>
+                <p class="mt-2 text-xs text-zinc-500">現在: {{ $player->icon }}</p>
             @endif
-            <input type="file" name="icon" accept="image/*" class="mt-1 w-full text-sm">
+            <input type="file" name="icon" accept="image/*" class="mt-2 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-800 hover:file:bg-emerald-100">
         </div>
-        <button type="submit" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-medium text-white">更新</button>
+        <button type="submit" class="kfc-btn-primary">更新</button>
     </form>
 @endsection

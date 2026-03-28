@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GameMatch;
 use App\Models\Season;
 use App\Models\SeasonPlayerPoint;
-use App\Models\Team;
+use App\Support\SeasonPlayerCatchStats;
 use App\Support\SeasonPlayerStandings;
 use Illuminate\View\View;
 
@@ -16,6 +16,7 @@ class HomeController extends Controller
         $currentSeason = Season::query()->where('is_current', true)->first();
 
         $seasonStandings = collect();
+        $seasonCatchStats = collect();
         if ($currentSeason) {
             $seasonStandings = SeasonPlayerPoint::query()
                 ->where('season_id', $currentSeason->id)
@@ -24,6 +25,7 @@ class HomeController extends Controller
                 ->orderBy('player_id')
                 ->get();
             $seasonStandings = SeasonPlayerStandings::attachDisplayRanks($seasonStandings);
+            $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($currentSeason->id);
         }
 
         $recentMatches = GameMatch::query()
@@ -38,18 +40,12 @@ class HomeController extends Controller
             ->orderByDesc('starts_on')
             ->get();
 
-        $teamsQuery = Team::query()->with(['players', 'gameMatch'])->withCount('players');
-        if ($currentSeason) {
-            $teamsQuery->whereHas('gameMatch', fn ($q) => $q->where('season_id', $currentSeason->id));
-        }
-        $teamsPreview = $teamsQuery->orderByDesc('id')->limit(24)->get();
-
         return view('home', compact(
             'currentSeason',
             'seasonStandings',
+            'seasonCatchStats',
             'recentMatches',
-            'pastSeasons',
-            'teamsPreview'
+            'pastSeasons'
         ));
     }
 }

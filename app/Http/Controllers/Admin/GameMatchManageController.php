@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Enums\MatchStatus;
 use App\Http\Controllers\Controller;
+use App\Models\FishCatch;
 use App\Models\GameMatch;
 use App\Models\Season;
 use App\Services\MatchResultSyncService;
@@ -59,9 +60,17 @@ class GameMatchManageController extends Controller
 
     public function edit(GameMatch $gameMatch): View
     {
+        $gameMatch->load('season');
         $seasons = Season::query()->orderByDesc('starts_on')->get();
 
-        return view('admin.matches.edit', compact('gameMatch', 'seasons'));
+        $matchCatches = FishCatch::query()
+            ->where('match_id', $gameMatch->id)
+            ->with(['team', 'player', 'images'])
+            ->orderBy('team_id')
+            ->orderByDesc('created_at')
+            ->get();
+
+        return view('admin.matches.edit', compact('gameMatch', 'seasons', 'matchCatches'));
     }
 
     public function update(Request $request, GameMatch $gameMatch): RedirectResponse
@@ -92,6 +101,21 @@ class GameMatchManageController extends Controller
         $this->matchResults->rebuildSeasonPlayerPoints($gameMatch->season);
 
         return back()->with('status', '試合結果を確定し、シーズンポイントを更新しました。');
+    }
+
+    public function unfinalize(GameMatch $gameMatch): RedirectResponse
+    {
+        if (! $gameMatch->is_finalized) {
+            return back()->with('status', 'この試合は未確定です。');
+        }
+
+        $gameMatch->update([
+            'is_finalized' => false,
+        ]);
+
+        $this->matchResults->rebuildSeasonPlayerPoints($gameMatch->season);
+
+        return back()->with('status', '試合の確定を解除しました。シーズン個人ポイントを再集計しました（この試合のポイントは集計から外れます）。');
     }
 
     /**

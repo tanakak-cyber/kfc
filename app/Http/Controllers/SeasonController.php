@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\GameMatch;
 use App\Models\Season;
 use App\Models\SeasonPlayerPoint;
+use App\Support\SeasonPlayerCatchStats;
 use App\Support\SeasonPlayerStandings;
 use Illuminate\View\View;
 
@@ -33,6 +34,8 @@ class SeasonController extends Controller
             ->get();
         $standings = SeasonPlayerStandings::attachDisplayRanks($standings);
 
-        return view('seasons.show', compact('season', 'matches', 'standings'));
+        $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($season->id);
+
+        return view('seasons.show', compact('season', 'matches', 'standings', 'seasonCatchStats'));
     }
 }

@@ -1,37 +1,45 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" class="scroll-smooth">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', config('app.name'))</title>
+    <title>@yield('title', $siteTeamName)</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-slate-50 text-slate-900 antialiased">
-    <header class="border-b border-slate-200 bg-white">
-        <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-3 px-4 py-4">
-            <a href="{{ route('home') }}" class="text-lg font-semibold text-slate-800">{{ config('app.name') }}</a>
-            <nav class="flex flex-wrap items-center gap-3 text-sm font-medium text-slate-600">
-                <a href="{{ route('seasons.index') }}" class="hover:text-slate-900">シーズン</a>
+<body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
+    <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div class="absolute -left-32 top-0 h-96 w-96 rounded-full bg-emerald-400/15 blur-3xl"></div>
+        <div class="absolute -right-24 top-48 h-80 w-80 rounded-full bg-teal-400/10 blur-3xl"></div>
+        <div class="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-zinc-300/20 blur-3xl"></div>
+    </div>
+    <header class="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md backdrop-saturate-150">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
+            <a href="{{ route('home') }}" class="group flex items-center gap-2">
+                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-md shadow-emerald-900/20">K</span>
+                <span class="text-base font-bold tracking-tight text-zinc-900">{{ $siteTeamName }}</span>
+            </a>
+            <nav class="flex flex-wrap items-center gap-1 sm:gap-2">
+                <a href="{{ route('seasons.index') }}" class="kfc-nav-pill">シーズン</a>
                 @auth
-                    <a href="{{ route('admin.dashboard') }}" class="hover:text-slate-900">管理</a>
+                    <a href="{{ route('admin.dashboard') }}" class="kfc-nav-pill">管理</a>
                     <form method="post" action="{{ route('logout') }}" class="inline">
                         @csrf
-                        <button type="submit" class="hover:text-slate-900">ログアウト</button>
+                        <button type="submit" class="kfc-nav-pill">ログアウト</button>
                     </form>
                 @else
-                    <a href="{{ route('login') }}" class="hover:text-slate-900">管理者ログイン</a>
+                    <a href="{{ route('login') }}" class="kfc-nav-pill-active">管理者ログイン</a>
                 @endauth
             </nav>
         </div>
     </header>
-    <main class="mx-auto max-w-5xl px-4 py-8">
+    <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
         @if (session('status'))
-            <div class="mb-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            <div class="kfc-alert-success" role="status">
                 {{ session('status') }}
             </div>
         @endif
         @if ($errors->any())
-            <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+            <div class="kfc-alert-error" role="alert">
                 <ul class="list-inside list-disc space-y-1">
                     @foreach ($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -41,8 +49,8 @@
         @endif
         @yield('content')
     </main>
-    <footer class="border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        &copy; {{ date('Y') }} {{ config('app.name') }}
+    <footer class="border-t border-zinc-200/80 bg-white/60 py-8 text-center text-xs text-zinc-500 backdrop-blur-sm">
+        <p>&copy; {{ date('Y') }} {{ $siteTeamName }}</p>
     </footer>
     <x-image-lightbox />
 </body>
