@@ -79,6 +79,11 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::post('matches/{gameMatch}/resync-match-results-and-season', [GameMatchManageController::class, 'resyncMatchResultsAndSeason'])
         ->name('matches.resync-match-results-and-season');
 
+    Route::post('matches/{gameMatch}/player-bonus-points', [GameMatchManageController::class, 'storePlayerBonusPoint'])
+        ->name('matches.player-bonus-points.store');
+    Route::delete('matches/{gameMatch}/player-bonus-points/{bonusPoint}', [GameMatchManageController::class, 'destroyPlayerBonusPoint'])
+        ->name('matches.player-bonus-points.destroy');
+
     Route::get('matches/{gameMatch}/catches/{fishCatch}/edit', [MatchFishCatchController::class, 'edit'])
         ->name('matches.catches.edit');
     Route::put('matches/{gameMatch}/catches/{fishCatch}', [MatchFishCatchController::class, 'update'])

@@ -101,7 +101,19 @@
                             </td>
                             <td class="px-4 py-3 tabular-nums">{{ $r->total_weight }}</td>
                             <td class="px-4 py-3 tabular-nums">{{ $r->big_fish_weight }}</td>
-                            <td class="px-4 py-3 tabular-nums font-medium">{{ $r->points }}</td>
+                            <td class="px-4 py-3 tabular-nums font-medium">
+                                @if ($gameMatch->isIndividualMatch())
+                                    @php $extra = (int) ($playerBonusTotals->get($r->player_id) ?? 0); @endphp
+                                    @if ($extra > 0)
+                                        <span class="font-semibold text-zinc-900">{{ $r->points + $extra }}</span>
+                                        <span class="mt-0.5 block text-xs font-normal text-zinc-500">順位 {{ $r->points }} + 追加 {{ $extra }}</span>
+                                    @else
+                                        {{ $r->points }}
+                                    @endif
+                                @else
+                                    {{ $r->points }}
+                                @endif
+                            </td>
                         </tr>
                     @empty
                         <tr>
@@ -111,6 +123,22 @@
                 </tbody>
             </table>
         </div>
+        @if ($gameMatch->matchPlayerBonusPoints->isNotEmpty())
+            <div class="mt-6 rounded-xl border border-emerald-200/70 bg-emerald-50/40 px-4 py-3 text-sm text-zinc-800">
+                <p class="font-semibold text-emerald-900">選手への追加ポイント</p>
+                <ul class="mt-2 list-inside list-disc space-y-1 text-zinc-700">
+                    @foreach ($gameMatch->matchPlayerBonusPoints->sortBy(fn ($b) => $b->player->name ?? '') as $b)
+                        <li>
+                            <span class="font-medium">{{ $b->player->displayLabel() }}</span>
+                            <span class="tabular-nums">+{{ $b->points }}pt</span>
+                            @if (filled($b->reason))
+                                <span class="text-zinc-600">（{{ $b->reason }}）</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
     </section>
 
     <section class="kfc-card mt-8">

@@ -26,6 +26,75 @@
         <button type="submit" class="kfc-btn-primary">更新</button>
     </form>
 
+    <div class="kfc-card mt-8">
+        <h2 class="kfc-section-title">選手への追加ポイント</h2>
+        <p class="mt-3 text-sm leading-relaxed text-zinc-600">
+            特典やイレギュラーで、特定の選手にだけこの試合のシーズン集計へポイントを加算できます（ランキングの <code class="rounded bg-zinc-100 px-1 text-xs">match_results.points</code> には含まれません）。複数回・複数選手に登録できます。
+        </p>
+        @if ($bonusEligiblePlayers->isEmpty())
+            <p class="kfc-muted mt-4">チームまたは参加者が未登録のため、まだ付与できません。</p>
+        @else
+            <form method="post" action="{{ route('admin.matches.player-bonus-points.store', $gameMatch) }}" class="mt-6 flex max-w-2xl flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+                @csrf
+                <div class="min-w-[12rem] flex-1">
+                    <label class="kfc-label" for="bonus_player_id">選手</label>
+                    <select name="player_id" id="bonus_player_id" class="kfc-select mt-2" required>
+                        <option value="">選択</option>
+                        @foreach ($bonusEligiblePlayers->sortBy(fn ($p) => $p->name) as $p)
+                            <option value="{{ $p->id }}" @selected(old('player_id') == $p->id)>{{ $p->displayLabel() }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="w-28">
+                    <label class="kfc-label" for="bonus_points">ポイント</label>
+                    <input type="number" name="points" id="bonus_points" min="1" max="99" value="{{ old('points', 2) }}" required class="kfc-input mt-2 tabular-nums">
+                </div>
+                <div class="min-w-0 flex-1 sm:basis-full">
+                    <label class="kfc-label" for="bonus_reason">理由（任意）</label>
+                    <input type="text" name="reason" id="bonus_reason" value="{{ old('reason') }}" maxlength="500" class="kfc-input mt-2" placeholder="例: 大会協力特典">
+                </div>
+                <button type="submit" class="kfc-btn-emerald shrink-0">追加する</button>
+            </form>
+            @error('player_id')
+                <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+            @enderror
+            @error('points')
+                <p class="mt-2 text-sm text-red-700">{{ $message }}</p>
+            @enderror
+        @endif
+
+        @if ($bonusPoints->isNotEmpty())
+            <div class="kfc-table-shell mt-8 overflow-x-auto">
+                <table class="min-w-full text-left text-sm">
+                    <thead class="kfc-thead">
+                        <tr>
+                            <th class="px-4 py-3">選手</th>
+                            <th class="px-4 py-3">追加pt</th>
+                            <th class="px-4 py-3">理由</th>
+                            <th class="px-4 py-3 text-right">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($bonusPoints as $bp)
+                            <tr class="kfc-trow">
+                                <td class="px-4 py-3">{{ $bp->player->displayLabel() }}</td>
+                                <td class="px-4 py-3 tabular-nums font-semibold text-emerald-800">+{{ $bp->points }}</td>
+                                <td class="px-4 py-3 text-zinc-600">{{ $bp->reason ?? '—' }}</td>
+                                <td class="px-4 py-3 text-right">
+                                    <form method="post" action="{{ route('admin.matches.player-bonus-points.destroy', [$gameMatch, $bp]) }}" class="inline" onsubmit="return confirm('この追加ポイントを削除しますか？');">
+                                        @csrf
+                                        @method('delete')
+                                        <button type="submit" class="text-sm font-medium text-red-600 hover:underline">削除</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
+
     <div class="kfc-card mt-8 border-red-200/60 bg-red-50/20 ring-red-500/5">
         <h2 class="kfc-section-title text-red-900">試合を削除</h2>
         <p class="mt-3 text-sm leading-relaxed text-zinc-700">

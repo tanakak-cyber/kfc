@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\MatchType;
 use App\Models\GameMatch;
 use App\Models\MatchParticipant;
+use App\Models\MatchPlayerBonusPoint;
 use App\Models\MatchResult;
 use App\Models\Player;
 use App\Models\Season;
@@ -125,6 +126,15 @@ class MatchResultSyncService
                 foreach ($playerIds as $pid) {
                     $totals[(int) $pid] = ($totals[(int) $pid] ?? 0) + (int) $mr->points;
                 }
+            }
+
+            $bonusRows = MatchPlayerBonusPoint::query()
+                ->whereIn('match_id', $finalizedMatchIds)
+                ->get(['player_id', 'points']);
+
+            foreach ($bonusRows as $bonus) {
+                $pid = (int) $bonus->player_id;
+                $totals[$pid] = ($totals[$pid] ?? 0) + (int) $bonus->points;
             }
 
             foreach (Player::query()->pluck('id') as $playerId) {

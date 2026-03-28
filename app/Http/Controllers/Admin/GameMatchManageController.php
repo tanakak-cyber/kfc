@@ -6,6 +6,7 @@ use App\Enums\MatchType;
 use App\Http\Controllers\Controller;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
+use App\Models\MatchPlayerBonusPoint;
 use App\Models\Season;
 use App\Services\MatchResultSyncService;
 use Illuminate\Http\RedirectResponse;
@@ -63,7 +64,7 @@ class GameMatchManageController extends Controller
 
     public function edit(GameMatch $gameMatch): View
     {
-        $gameMatch->load('season');
+        $gameMatch->load(['season', 'teams.players', 'matchParticipants.player']);
         $seasons = Season::query()->orderByDesc('starts_on')->get();
 
         $matchCatches = FishCatch::query()
@@ -72,7 +73,61 @@ class GameMatchManageController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        return view('admin.matches.edit', compact('gameMatch', 'seasons', 'matchCatches'));
+        $bonusPoints = $gameMatch->matchPlayerBonusPoints()
+            ->with('player')
+            ->orderByDesc('id')
+            ->get();
+
+        $bonusEligiblePlayers = $gameMatch->playersEligibleForBonus();
+
+        return view('admin.matches.edit', compact(
+            'gameMatch',
+            'seasons',
+            'matchCatches',
+            'bonusPoints',
+            'bonusEligiblePlayers'
+        ));
+    }
+
+    public function storePlayerBonusPoint(Request $request, GameMatch $gameMatch): RedirectResponse
+    {
+        $eligibleIds = $gameMatch->playersEligibleForBonus()->pluck('id')->all();
+
+        if ($eligibleIds === []) {
+            return back()->withErrors(['player_id' => 'この試合に登録された選手がいないため、追加ポイントを付与できません。']);
+        }
+
+        $data = $request->validate([
+            'player_id' => ['required', 'integer', Rule::in($eligibleIds)],
+            'points' => ['required', 'integer', 'min:1', 'max:99'],
+            'reason' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        $reason = isset($data['reason']) ? trim((string) $data['reason']) : '';
+
+        MatchPlayerBonusPoint::query()->create([
+            'match_id' => $gameMatch->id,
+            'player_id' => (int) $data['player_id'],
+            'points' => (int) $data['points'],
+            'reason' => $reason !== '' ? $reason : null,
+        ]);
+
+        $this->matchResults->rebuildSeasonPlayerPoints($gameMatch->season);
+
+        return back()->with('status', '追加ポイントを登録し、シーズン個人順位を更新しました。');
+    }
+
+    public function destroyPlayerBonusPoint(GameMatch $gameMatch, MatchPlayerBonusPoint $bonusPoint): RedirectResponse
+    {
+        if ($bonusPoint->match_id !== $gameMatch->id) {
+            abort(404);
+        }
+
+        $season = $gameMatch->season;
+        $bonusPoint->delete();
+        $this->matchResults->rebuildSeasonPlayerPoints($season);
+
+        return back()->with('status', '追加ポイントを削除し、シーズン個人順位を更新しました。');
     }
 
     public function update(Request $request, GameMatch $gameMatch): RedirectResponse

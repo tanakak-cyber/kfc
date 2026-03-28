@@ -16,6 +16,7 @@ class PublicMatchController extends Controller
             'teams.players',
             'matchParticipants.player',
             'matchResults' => fn ($q) => $q->orderBy('rank')->with(['team.players', 'player']),
+            'matchPlayerBonusPoints.player',
         ]);
 
         $catches = FishCatch::query()
@@ -25,6 +26,10 @@ class PublicMatchController extends Controller
             ->orderByDesc('weight_g')
             ->get();
 
-        return view('matches.show', compact('gameMatch', 'catches'));
+        $playerBonusTotals = $gameMatch->matchPlayerBonusPoints
+            ->groupBy('player_id')
+            ->map(fn ($rows) => (int) $rows->sum('points'));
+
+        return view('matches.show', compact('gameMatch', 'catches', 'playerBonusTotals'));
     }
 }

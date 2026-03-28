@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 
 class GameMatch extends Model
 {
@@ -111,6 +112,36 @@ class GameMatch extends Model
     public function matchParticipants(): HasMany
     {
         return $this->hasMany(MatchParticipant::class, 'match_id');
+    }
+
+    public function matchPlayerBonusPoints(): HasMany
+    {
+        return $this->hasMany(MatchPlayerBonusPoint::class, 'match_id');
+    }
+
+    /**
+     * この試合に紐づく選手のみ（チーム戦: 全チームのメンバー、個人戦: 参加者一覧）
+     *
+     * @return Collection<int, Player>
+     */
+    public function playersEligibleForBonus(): Collection
+    {
+        if ($this->isTeamMatch()) {
+            return $this->teams()
+                ->with('players')
+                ->get()
+                ->flatMap(fn (Team $team) => $team->players)
+                ->unique('id')
+                ->values();
+        }
+
+        return $this->matchParticipants()
+            ->with('player')
+            ->get()
+            ->pluck('player')
+            ->filter()
+            ->unique('id')
+            ->values();
     }
 
     public function isTeamMatch(): bool
