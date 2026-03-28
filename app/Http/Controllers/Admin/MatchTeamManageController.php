@@ -43,18 +43,27 @@ class MatchTeamManageController extends Controller
             return back()->withErrors(['name' => '確定済みの試合にチームは追加できません。']);
         }
 
+        if (! $request->filled('player_b_id')) {
+            $request->merge(['player_b_id' => null]);
+        }
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'player_a_id' => ['required', 'exists:players,id'],
-            'player_b_id' => ['required', 'exists:players,id', 'different:player_a_id'],
+            'player_a_id' => ['required', 'integer', 'exists:players,id'],
+            'player_b_id' => ['nullable', 'integer', 'exists:players,id', 'different:player_a_id'],
         ]);
+
+        $memberIds = [(int) $data['player_a_id']];
+        if ($data['player_b_id'] !== null) {
+            $memberIds[] = (int) $data['player_b_id'];
+        }
 
         $team = Team::query()->create([
             'match_id' => $gameMatch->id,
             'name' => $data['name'],
             'entry_token' => Str::random(32),
         ]);
-        $team->players()->sync([$data['player_a_id'], $data['player_b_id']]);
+        $team->players()->sync($memberIds);
 
         $this->matchResults->syncMatch($gameMatch, true);
 

@@ -42,7 +42,7 @@
                     <input type="text" name="name" value="{{ old('name') }}" required class="kfc-input mt-2">
                 </div>
                 <div>
-                    <label class="kfc-label">選手1</label>
+                    <label class="kfc-label">メンバー1（必須）</label>
                     <select name="player_a_id" class="kfc-select mt-2" required>
                         <option value="">選択</option>
                         @foreach ($players as $p)
@@ -51,13 +51,14 @@
                     </select>
                 </div>
                 <div>
-                    <label class="kfc-label">選手2</label>
-                    <select name="player_b_id" class="kfc-select mt-2" required>
-                        <option value="">選択</option>
+                    <label class="kfc-label">メンバー2（任意）</label>
+                    <select name="player_b_id" class="kfc-select mt-2">
+                        <option value="">1人チームの場合は空のまま</option>
                         @foreach ($players as $p)
                             <option value="{{ $p->id }}" @selected(old('player_b_id') == $p->id)>{{ $p->displayLabel() }}</option>
                         @endforeach
                     </select>
+                    <p class="mt-1 text-xs text-zinc-500">1人チームも登録できます。2人目を選ぶと通常の2人チームになります。</p>
                 </div>
                 <button type="submit" class="kfc-btn-primary">追加</button>
             </form>
