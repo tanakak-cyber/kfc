@@ -55,5 +55,6 @@
         <p>&copy; {{ date('Y') }} {{ $headerSiteTitle }}</p>
     </footer>
     <x-image-lightbox />
+    @stack('scripts')
 </body>
 </html>

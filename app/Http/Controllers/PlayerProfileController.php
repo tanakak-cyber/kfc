@@ -18,7 +18,7 @@ class PlayerProfileController extends Controller
 
         $totalCatches = (clone $approvedQuery)->count();
         $maxLength = (clone $approvedQuery)->max('length_cm');
-        $maxWeight = (clone $approvedQuery)->max('weight_kg');
+        $maxWeight = (clone $approvedQuery)->max('weight_g');
 
         $perMatch = FishCatch::query()
             ->where('player_id', $player->id)
@@ -34,7 +34,7 @@ class PlayerProfileController extends Controller
                     'match' => $match,
                     'count' => $group->count(),
                     'max_length' => $group->max('length_cm'),
-                    'max_weight' => $group->max('weight_kg'),
+                    'max_weight' => $group->max('weight_g'),
                 ];
             })
             ->sortByDesc(fn ($row) => $row['match']->start_datetime)

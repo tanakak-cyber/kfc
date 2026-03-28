@@ -35,8 +35,8 @@
             <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900">{{ $maxLength ?? '—' }}</dd>
         </div>
         <div class="kfc-card-sm text-center sm:text-left">
-            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">最大重さ（kg）</dt>
-            <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900">{{ $maxWeight ?? '—' }}</dd>
+            <dt class="text-xs font-medium uppercase tracking-wide text-zinc-500">最大重さ（g）</dt>
+            <dd class="mt-2 text-3xl font-bold tabular-nums tracking-tight text-zinc-900">{{ $maxWeight !== null ? $maxWeight.' g' : '—' }}</dd>
         </div>
     </dl>
 
@@ -68,7 +68,7 @@
                                     · 個人戦
                                 @endif
                             </p>
-                            <p class="mt-2 text-zinc-700">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_kg }} kg</p>
+                            <p class="mt-2 text-zinc-700">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_g }} g</p>
                         </div>
                     </div>
                 @endforeach
@@ -85,7 +85,7 @@
                         <th class="px-4 py-3">試合</th>
                         <th class="px-4 py-3">本数</th>
                         <th class="px-4 py-3">最大長さ</th>
-                        <th class="px-4 py-3">最大重さ</th>
+                        <th class="px-4 py-3">最大重さ（g）</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -96,7 +96,7 @@
                             </td>
                             <td class="px-4 py-3 tabular-nums">{{ $row['count'] }}</td>
                             <td class="px-4 py-3 tabular-nums">{{ $row['max_length'] }}</td>
-                            <td class="px-4 py-3 tabular-nums">{{ $row['max_weight'] }}</td>
+                            <td class="px-4 py-3 tabular-nums">{{ $row['max_weight'] !== null ? $row['max_weight'].' g' : '—' }}</td>
                         </tr>
                     @empty
                         <tr>

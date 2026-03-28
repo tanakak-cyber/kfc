@@ -21,14 +21,13 @@ class HomeController extends Controller
         $seasonCatchFeed = collect();
         if ($currentSeason) {
             $seasonCatchFeed = SeasonCatchFeed::approvedForSeason($currentSeason->id);
+            $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($currentSeason->id);
             $seasonStandings = SeasonPlayerPoint::query()
                 ->where('season_id', $currentSeason->id)
                 ->with('player')
-                ->orderByDesc('total_points')
-                ->orderBy('player_id')
                 ->get();
+            $seasonStandings = SeasonPlayerStandings::orderByPointsCatchCountMaxWeight($seasonStandings, $seasonCatchStats);
             $seasonStandings = SeasonPlayerStandings::attachDisplayRanks($seasonStandings);
-            $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($currentSeason->id);
         }
 
         $recentMatches = GameMatch::query()

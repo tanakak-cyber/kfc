@@ -22,7 +22,7 @@ class PublicMatchController extends Controller
             ->where('match_id', $gameMatch->id)
             ->where('approval_status', CatchApprovalStatus::Approved)
             ->with(['player', 'images', 'team'])
-            ->orderByDesc('weight_kg')
+            ->orderByDesc('weight_g')
             ->get();
 
         return view('matches.show', compact('gameMatch', 'catches'));

@@ -6,6 +6,7 @@ enum MatchPhase: string
 {
     case Scheduled = 'scheduled';
     case Ongoing = 'ongoing';
+    case Ended = 'ended';
     case Finalized = 'finalized';
 
     public function label(): string
@@ -13,6 +14,7 @@ enum MatchPhase: string
         return match ($this) {
             self::Scheduled => '予定',
             self::Ongoing => '開催中',
+            self::Ended => '終了',
             self::Finalized => '確定',
         };
     }

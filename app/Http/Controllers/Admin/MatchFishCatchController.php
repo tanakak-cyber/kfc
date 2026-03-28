@@ -11,8 +11,10 @@ use App\Services\CatchImageProcessor;
 use App\Services\MatchResultSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -63,13 +65,28 @@ class MatchFishCatchController extends Controller
         $validated = $request->validate([
             'player_id' => ['required', 'integer', Rule::in($playerIds)],
             'length_cm' => ['required', 'numeric', 'min:0', 'max:999'],
-            'weight_kg' => ['required', 'numeric', 'min:0', 'max:999'],
+            'weight_g' => ['required', 'integer', 'min:0', 'max:9999'],
             'approval_status' => ['required', Rule::in(array_map(fn (CatchApprovalStatus $c) => $c->value, CatchApprovalStatus::cases()))],
             'remove_image_ids' => ['nullable', 'array'],
             'remove_image_ids.*' => ['integer'],
-            'photos' => ['nullable', 'array', 'max:10'],
-            'photos.*' => ['file', 'image', 'max:10240'],
         ]);
+
+        $addPhotos = $this->normalizeUploadedPhotos($request);
+        if (count($addPhotos) > 10) {
+            return back()->withErrors(['photos' => ['画像の追加は10枚までです。']])->withInput();
+        }
+        foreach ($addPhotos as $file) {
+            if (! $file->isValid()) {
+                return back()->withErrors(['photos' => ['画像のアップロードに失敗しました。']])->withInput();
+            }
+            $pv = Validator::make(
+                ['_p' => $file],
+                ['_p' => ['file', 'image', 'max:10240']],
+            );
+            if ($pv->fails()) {
+                return back()->withErrors(['photos' => $pv->errors()->get('_p')])->withInput();
+            }
+        }
 
         if ($gameMatch->isTeamMatch()) {
             $fishCatch->loadMissing('team.players');
@@ -79,7 +96,7 @@ class MatchFishCatchController extends Controller
         }
 
         try {
-            DB::transaction(function () use ($request, $fishCatch, $validated): void {
+            DB::transaction(function () use ($request, $fishCatch, $validated, $addPhotos): void {
                 $removeIds = array_map('intval', $request->input('remove_image_ids', []));
                 if ($removeIds !== []) {
                     $toRemove = $fishCatch->images()->whereIn('id', $removeIds)->get();
@@ -91,10 +108,7 @@ class MatchFishCatchController extends Controller
 
                 $baseOrder = (int) ($fishCatch->images()->max('sort_order') ?? -1);
                 $addIndex = 0;
-                foreach ($request->file('photos', []) as $file) {
-                    if (! $file || ! $file->isValid()) {
-                        continue;
-                    }
+                foreach ($addPhotos as $file) {
                     $addIndex++;
                     $path = $this->images->processAndStore($file);
                     $fishCatch->images()->create([
@@ -106,7 +120,7 @@ class MatchFishCatchController extends Controller
                 $fishCatch->update([
                     'player_id' => (int) $validated['player_id'],
                     'length_cm' => $validated['length_cm'],
-                    'weight_kg' => $validated['weight_kg'],
+                    'weight_g' => (int) $validated['weight_g'],
                     'approval_status' => CatchApprovalStatus::from($validated['approval_status']),
                 ]);
 
@@ -142,5 +156,31 @@ class MatchFishCatchController extends Controller
         if ((int) $fishCatch->match_id !== (int) $gameMatch->id) {
             abort(404);
         }
+    }
+
+    /**
+     * @return list<UploadedFile>
+     */
+    private function normalizeUploadedPhotos(Request $request): array
+    {
+        $raw = $request->file('photos');
+        if ($raw === null) {
+            return [];
+        }
+        if ($raw instanceof UploadedFile) {
+            return [$raw];
+        }
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        $out = [];
+        foreach ($raw as $item) {
+            if ($item instanceof UploadedFile) {
+                $out[] = $item;
+            }
+        }
+
+        return array_values($out);
     }
 }

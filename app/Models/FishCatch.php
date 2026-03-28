@@ -16,7 +16,7 @@ class FishCatch extends Model
         'team_id',
         'player_id',
         'length_cm',
-        'weight_kg',
+        'weight_g',
         'approval_status',
     ];
 
@@ -24,7 +24,7 @@ class FishCatch extends Model
     {
         return [
             'length_cm' => 'decimal:2',
-            'weight_kg' => 'decimal:3',
+            'weight_g' => 'integer',
             'approval_status' => CatchApprovalStatus::class,
         ];
     }

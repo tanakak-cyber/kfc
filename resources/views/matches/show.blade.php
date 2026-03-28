@@ -83,8 +83,8 @@
                         @else
                             <th class="px-4 py-3">プレイヤー</th>
                         @endif
-                        <th class="px-4 py-3">合計 kg</th>
-                        <th class="px-4 py-3">ビッグ kg</th>
+                        <th class="px-4 py-3">合計（g）</th>
+                        <th class="px-4 py-3">ビッグ（g）</th>
                         <th class="px-4 py-3">ポイント</th>
                     </tr>
                 </thead>
@@ -127,7 +127,7 @@
                         @if ($catch->team)
                             <p class="mt-0.5 text-xs text-zinc-500">{{ $catch->team->name }}</p>
                         @endif
-                        <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_kg }} kg</p>
+                        <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_g }} g</p>
                     </div>
                 </div>
             @empty

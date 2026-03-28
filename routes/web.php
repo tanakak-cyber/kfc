@@ -105,4 +105,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::get('catches/pending', [CatchModerationController::class, 'index'])->name('catches.pending');
     Route::post('catches/{fishCatch}/approve', [CatchModerationController::class, 'approve'])->name('catches.approve');
     Route::post('catches/{fishCatch}/reject', [CatchModerationController::class, 'reject'])->name('catches.reject');
+    Route::post('catches/{fishCatch}/images/{catchImage}/rotate', [CatchModerationController::class, 'rotateImage'])
+        ->name('catches.images.rotate');
+    Route::post('catches/{fishCatch}/measurements', [CatchModerationController::class, 'updateMeasurements'])
+        ->name('catches.measurements.update');
 });

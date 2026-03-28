@@ -34,8 +34,8 @@
         </div>
 
         <div>
-            <label class="kfc-label" for="weight_kg">重さ（kg）</label>
-            <input type="number" step="0.001" name="weight_kg" id="weight_kg" value="{{ old('weight_kg', $fishCatch->weight_kg) }}" class="kfc-input mt-2" required>
+            <label class="kfc-label" for="weight_g">重さ（g）</label>
+            <input type="number" step="1" min="0" max="9999" name="weight_g" id="weight_g" value="{{ old('weight_g', $fishCatch->weight_g) }}" class="kfc-input mt-2" required>
         </div>
 
         <div>

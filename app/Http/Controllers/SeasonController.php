@@ -27,15 +27,14 @@ class SeasonController extends Controller
             ->orderByDesc('start_datetime')
             ->get();
 
+        $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($season->id);
+
         $standings = SeasonPlayerPoint::query()
             ->where('season_id', $season->id)
             ->with('player')
-            ->orderByDesc('total_points')
-            ->orderBy('player_id')
             ->get();
+        $standings = SeasonPlayerStandings::orderByPointsCatchCountMaxWeight($standings, $seasonCatchStats);
         $standings = SeasonPlayerStandings::attachDisplayRanks($standings);
-
-        $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($season->id);
 
         $seasonCatchFeed = SeasonCatchFeed::approvedForSeason($season->id);
 

@@ -25,7 +25,7 @@
                             <span class="font-normal text-zinc-500">（{{ $catch->team->name }}）</span>
                         @endif
                     </p>
-                    <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_kg }} kg</p>
+                    <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_g }} g</p>
                 </div>
             </div>
         @empty

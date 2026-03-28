@@ -11,7 +11,7 @@ final class SeasonPlayerCatchStats
     /**
      * シーズンに紐づく試合の承認済み釣果を、プレイヤーごとに集計する。
      *
-     * @return Collection<int, array{catch_count: int, max_length_cm: string|null, max_weight_kg: string|null}>
+     * @return Collection<int, array{catch_count: int, max_length_cm: string|null, max_weight_g: string|null}>
      */
     public static function statsByPlayerId(int $seasonId): Collection
     {
@@ -19,13 +19,13 @@ final class SeasonPlayerCatchStats
             ->where('approval_status', CatchApprovalStatus::Approved)
             ->whereHas('gameMatch', fn ($q) => $q->where('season_id', $seasonId))
             ->groupBy('player_id')
-            ->selectRaw('player_id, COUNT(*) as season_catch_count, MAX(length_cm) as season_max_length_cm, MAX(weight_kg) as season_max_weight_kg')
+            ->selectRaw('player_id, COUNT(*) as season_catch_count, MAX(length_cm) as season_max_length_cm, MAX(weight_g) as season_max_weight_g')
             ->get()
             ->keyBy(fn ($row) => (int) $row->player_id)
             ->map(fn ($row) => [
                 'catch_count' => (int) $row->season_catch_count,
                 'max_length_cm' => $row->season_max_length_cm !== null ? (string) $row->season_max_length_cm : null,
-                'max_weight_kg' => $row->season_max_weight_kg !== null ? (string) $row->season_max_weight_kg : null,
+                'max_weight_g' => $row->season_max_weight_g !== null ? (string) $row->season_max_weight_g : null,
             ]);
     }
 }

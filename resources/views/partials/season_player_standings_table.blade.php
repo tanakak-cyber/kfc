@@ -8,7 +8,7 @@
                 <th class="px-4 py-3">合計ポイント</th>
                 <th class="px-4 py-3">シーズン通算釣果数</th>
                 <th class="px-4 py-3">最長（cm）</th>
-                <th class="px-4 py-3">最大重量（kg）</th>
+                <th class="px-4 py-3">最大重量（g）</th>
             </tr>
         </thead>
         <tbody>
@@ -16,7 +16,7 @@
                 @php
                     $c = $seasonCatchStats->get($row->player_id);
                     $maxLen = data_get($c, 'max_length_cm');
-                    $maxWt = data_get($c, 'max_weight_kg');
+                    $maxWt = data_get($c, 'max_weight_g');
                 @endphp
                 <tr class="kfc-trow">
                     <td class="px-4 py-3 font-semibold text-zinc-900">{{ $row->display_rank }}</td>
@@ -26,7 +26,7 @@
                     <td class="px-4 py-3 font-medium tabular-nums text-zinc-800">{{ $row->total_points }}</td>
                     <td class="px-4 py-3 tabular-nums text-zinc-800">{{ data_get($c, 'catch_count', 0) }}</td>
                     <td class="px-4 py-3 tabular-nums text-zinc-800">{{ $maxLen !== null && $maxLen !== '' ? $maxLen : '—' }}</td>
-                    <td class="px-4 py-3 tabular-nums text-zinc-800">{{ $maxWt !== null && $maxWt !== '' ? $maxWt : '—' }}</td>
+                    <td class="px-4 py-3 tabular-nums text-zinc-800">{{ $maxWt !== null && $maxWt !== '' ? $maxWt.' g' : '—' }}</td>
                 </tr>
             @endforeach
         </tbody>

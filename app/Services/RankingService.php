@@ -12,11 +12,13 @@ use Illuminate\Support\Collection;
 class RankingService
 {
     /**
+     * 上位3本の合計・最大をグラム単位で返す（match_results と同じ意味）。
+     *
      * @return array{total_weight: float, big_fish_weight: float}
      */
     public function teamScore(Team $team, bool $approvedOnly): array
     {
-        $query = $team->catches()->orderByDesc('weight_kg');
+        $query = $team->catches()->orderByDesc('weight_g');
 
         if ($approvedOnly) {
             $query->where('approval_status', CatchApprovalStatus::Approved);
@@ -27,7 +29,7 @@ class RankingService
             ]);
         }
 
-        $weights = $query->limit(3)->pluck('weight_kg')->map(fn ($w) => (float) $w);
+        $weights = $query->limit(3)->pluck('weight_g')->map(fn ($w) => (float) $w);
         $total = round($weights->sum(), 3);
         $bigFish = $weights->isEmpty() ? 0.0 : round((float) $weights->max(), 3);
 
@@ -45,7 +47,7 @@ class RankingService
         $query = FishCatch::query()
             ->where('match_id', $match->id)
             ->where('player_id', $player->id)
-            ->orderByDesc('weight_kg');
+            ->orderByDesc('weight_g');
 
         if ($approvedOnly) {
             $query->where('approval_status', CatchApprovalStatus::Approved);
@@ -56,7 +58,7 @@ class RankingService
             ]);
         }
 
-        $weights = $query->limit(3)->pluck('weight_kg')->map(fn ($w) => (float) $w);
+        $weights = $query->limit(3)->pluck('weight_g')->map(fn ($w) => (float) $w);
         $total = round($weights->sum(), 3);
         $bigFish = $weights->isEmpty() ? 0.0 : round((float) $weights->max(), 3);
 
@@ -207,7 +209,7 @@ class RankingService
 
     private function sameScore(array $a, array $b): bool
     {
-        return abs($a['total_weight'] - $b['total_weight']) < 0.0005
-            && abs($a['big_fish_weight'] - $b['big_fish_weight']) < 0.0005;
+        return abs($a['total_weight'] - $b['total_weight']) < 0.5
+            && abs($a['big_fish_weight'] - $b['big_fish_weight']) < 0.5;
     }
 }

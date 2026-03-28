@@ -36,7 +36,8 @@ class GameMatch extends Model
     }
 
     /**
-     * DB に保存しない表示用ステータス（現在時刻・開始・確定フラグから算出）。
+     * DB に保存しない表示用ステータス（現在時刻・開始・終了・確定から算出）。
+     * 終了日時を設定している場合、終了日時の1時間後から「終了」と表示する。
      */
     protected function status(): Attribute
     {
@@ -50,6 +51,10 @@ class GameMatch extends Model
 
             if ($this->is_finalized) {
                 return MatchPhase::Finalized;
+            }
+
+            if ($this->end_datetime !== null && $now->gte($this->end_datetime->copy()->addHour())) {
+                return MatchPhase::Ended;
             }
 
             return MatchPhase::Ongoing;

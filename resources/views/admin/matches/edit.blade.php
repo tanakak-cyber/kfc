@@ -110,7 +110,7 @@
                             <th class="px-4 py-3">投稿日時</th>
                             <th class="px-4 py-3">チーム</th>
                             <th class="px-4 py-3">プレイヤー</th>
-                            <th class="px-4 py-3">cm / kg</th>
+                            <th class="px-4 py-3">cm / g</th>
                             <th class="px-4 py-3">状態</th>
                             <th class="px-4 py-3">画像</th>
                             <th class="px-4 py-3 text-right">操作</th>
@@ -122,7 +122,7 @@
                                 <td class="px-4 py-3 whitespace-nowrap text-zinc-600">{{ $c->created_at->format('Y/m/d H:i') }}</td>
                                 <td class="px-4 py-3 font-medium text-zinc-900">{{ $c->team?->name ?? '—（個人戦）' }}</td>
                                 <td class="px-4 py-3">{{ $c->player->displayLabel() }}</td>
-                                <td class="px-4 py-3 tabular-nums text-zinc-700">{{ $c->length_cm }} / {{ $c->weight_kg }}</td>
+                                <td class="px-4 py-3 tabular-nums text-zinc-700">{{ $c->length_cm }} / {{ $c->weight_g }}</td>
                                 <td class="px-4 py-3">
                                     <span @class([
                                         'inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ring-1',

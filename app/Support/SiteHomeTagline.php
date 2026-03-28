@@ -11,7 +11,7 @@ final class SiteHomeTagline
 
     public const SETTING_KEY = 'home_tagline';
 
-    public const DEFAULT = 'シーズン・試合・チーム・釣果を一元管理。ランキングは合計重量（上位3本）で決定します。';
+    public const DEFAULT = 'シーズン・試合・チーム・釣果を一元管理。ランキングは合計重量（上位3本、単位 g）で決定します。';
 
     public static function get(): string
     {
