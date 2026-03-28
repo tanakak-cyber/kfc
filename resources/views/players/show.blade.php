@@ -58,7 +58,7 @@
                                 <a href="{{ route('matches.show', $catch->gameMatch) }}" class="kfc-link font-semibold">{{ $catch->gameMatch->title }}</a>
                             </p>
                             <p class="text-xs text-zinc-500">
-                                {{ $catch->gameMatch->held_at->format('Y/m/d H:i') }}
+                                {{ $catch->gameMatch->start_datetime->format('Y/m/d H:i') }}
                                 @if ($catch->gameMatch->season)
                                     · {{ $catch->gameMatch->season->name }}
                                 @endif

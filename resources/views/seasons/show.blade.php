@@ -50,7 +50,7 @@
                     <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
                             <a href="{{ route('matches.show', $m) }}" class="kfc-link text-base">{{ $m->title }}</a>
-                            <p class="mt-0.5 text-sm text-zinc-600">{{ $m->held_at->format('Y/m/d H:i') }} · {{ $m->field }}</p>
+                            <p class="mt-0.5 text-sm text-zinc-600">{{ $m->start_datetime->format('Y/m/d H:i') }} · {{ $m->field }}</p>
                         </div>
                         <a href="{{ route('matches.show', $m) }}" class="kfc-link-subtle shrink-0 text-sm">詳細 →</a>
                     </div>

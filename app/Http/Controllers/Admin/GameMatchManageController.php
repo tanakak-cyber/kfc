@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\MatchStatus;
 use App\Enums\MatchType;
 use App\Http\Controllers\Controller;
 use App\Models\FishCatch;
@@ -28,7 +27,7 @@ class GameMatchManageController extends Controller
         $matches = GameMatch::query()
             ->when($seasonId, fn ($q) => $q->where('season_id', $seasonId))
             ->with('season')
-            ->orderByDesc('held_at')
+            ->orderByDesc('start_datetime')
             ->paginate(20)
             ->withQueryString();
 
@@ -130,7 +129,6 @@ class GameMatchManageController extends Controller
 
         $gameMatch->update([
             'is_finalized' => true,
-            'status' => MatchStatus::Completed,
         ]);
 
         $this->matchResults->syncMatch($gameMatch, true);
@@ -178,14 +176,13 @@ class GameMatchManageController extends Controller
             'season_id' => ['required', 'exists:seasons,id'],
             'match_type' => ['required', Rule::in(array_map(fn (MatchType $t) => $t->value, MatchType::cases()))],
             'title' => ['required', 'string', 'max:255'],
-            'held_at' => ['required', 'date'],
+            'start_datetime' => ['required', 'date'],
+            'end_datetime' => ['nullable', 'date', 'after:start_datetime'],
             'field' => ['required', 'string', 'max:255'],
             'launch_shop' => ['nullable', 'string', 'max:255'],
             'rules' => ['nullable', 'string'],
-            'status' => ['required', 'in:scheduled,in_progress,completed'],
         ]);
 
-        $data['status'] = MatchStatus::from($data['status']);
         $data['match_type'] = MatchType::from($data['match_type']);
 
         return $data;
@@ -199,14 +196,12 @@ class GameMatchManageController extends Controller
         $data = $request->validate([
             'season_id' => ['required', 'exists:seasons,id'],
             'title' => ['required', 'string', 'max:255'],
-            'held_at' => ['required', 'date'],
+            'start_datetime' => ['required', 'date'],
+            'end_datetime' => ['nullable', 'date', 'after:start_datetime'],
             'field' => ['required', 'string', 'max:255'],
             'launch_shop' => ['nullable', 'string', 'max:255'],
             'rules' => ['nullable', 'string'],
-            'status' => ['required', 'in:scheduled,in_progress,completed'],
         ]);
-
-        $data['status'] = MatchStatus::from($data['status']);
 
         return $data;
     }

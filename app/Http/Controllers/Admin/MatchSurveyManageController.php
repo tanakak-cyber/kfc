@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\MatchStatus;
 use App\Enums\MatchType;
 use App\Enums\SurveyDateAnswerStatus;
 use App\Enums\SurveyStatus;
@@ -223,11 +222,11 @@ class MatchSurveyManageController extends Controller
                 'season_id' => $survey->season_id,
                 'match_type' => $matchType,
                 'title' => $validated['match_title'],
-                'held_at' => $heldAt,
+                'start_datetime' => $heldAt,
+                'end_datetime' => null,
                 'field' => $fieldRow->field_name,
                 'launch_shop' => null,
                 'rules' => null,
-                'status' => MatchStatus::Scheduled,
                 'is_finalized' => false,
             ]);
 

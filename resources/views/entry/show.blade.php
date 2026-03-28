@@ -10,6 +10,10 @@
         <p class="kfc-muted mt-2">{{ $gameMatch->title }} — <span class="font-medium text-zinc-700">{{ $participant->player->displayLabel() }}</span>（個人戦）</p>
     @endif
 
+    @error('match')
+        <p class="kfc-alert-warn mt-6" role="alert">{{ $message }}</p>
+    @enderror
+
     <section class="kfc-card mt-8">
         <h2 class="kfc-section-title">TOP3（未承認含む）</h2>
         @if (empty($top3))
@@ -26,6 +30,14 @@
     @if ($gameMatch->is_finalized)
         <p class="kfc-alert-warn mt-8" role="status">
             この試合は結果確定済みのため、新規投稿はできません。
+        </p>
+    @elseif ($gameMatch->isBeforeStartDatetime())
+        <p class="kfc-alert-warn mt-8" role="status">
+            試合開始前のため投稿できません。開始日時以降に再度アクセスしてください。
+        </p>
+    @elseif ($gameMatch->isAtOrAfterEndDatetime())
+        <p class="kfc-alert-warn mt-8" role="status">
+            試合終了後のため投稿できません。
         </p>
     @elseif ($entryMode === 'individual' && ! $participant->is_present)
         <p class="kfc-alert-warn mt-8" role="status">

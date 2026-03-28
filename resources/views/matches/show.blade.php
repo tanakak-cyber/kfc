@@ -7,23 +7,19 @@
         <a href="{{ route('seasons.show', $gameMatch->season) }}" class="kfc-link">{{ $gameMatch->season->name }}</a>
     </p>
     <h1 class="kfc-page-title mt-1">{{ $gameMatch->title }}</h1>
-    <p class="mt-2 text-sm text-zinc-600">{{ $gameMatch->held_at->format('Y/m/d H:i') }} · {{ $gameMatch->field }}</p>
+    <p class="mt-2 text-sm text-zinc-600">
+        開始 {{ $gameMatch->start_datetime->format('Y/m/d H:i') }}
+        @if ($gameMatch->end_datetime)
+            〜 終了 {{ $gameMatch->end_datetime->format('Y/m/d H:i') }}
+        @endif
+        · {{ $gameMatch->field }}
+    </p>
     @if ($gameMatch->launch_shop)
         <p class="text-sm text-zinc-600">出艇: {{ $gameMatch->launch_shop }}</p>
     @endif
     <div class="mt-4 flex flex-wrap gap-2">
-        @php
-            $statusLabel = match ($gameMatch->status) {
-                \App\Enums\MatchStatus::Scheduled => '予定',
-                \App\Enums\MatchStatus::InProgress => '開催中',
-                \App\Enums\MatchStatus::Completed => '完了',
-            };
-        @endphp
         <span class="kfc-badge">形式: {{ $gameMatch->match_type->label() }}</span>
-        <span class="kfc-badge">ステータス: {{ $statusLabel }}</span>
-        @if ($gameMatch->is_finalized)
-            <span class="kfc-badge-success">結果確定</span>
-        @endif
+        <span class="kfc-badge">ステータス: {{ $gameMatch->status->label() }}</span>
     </div>
 
     @if ($gameMatch->rules)

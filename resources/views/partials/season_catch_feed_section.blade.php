@@ -17,7 +17,7 @@
                 <div class="border-t border-zinc-100 p-4 text-sm">
                     <p class="text-xs text-zinc-500">
                         <a href="{{ route('matches.show', $catch->gameMatch) }}" class="kfc-link">{{ $catch->gameMatch->title }}</a>
-                        <span class="text-zinc-400"> · </span>{{ $catch->gameMatch->held_at->format('Y/m/d') }}
+                        <span class="text-zinc-400"> · </span>{{ $catch->gameMatch->start_datetime->format('Y/m/d') }}
                     </p>
                     <p class="mt-2 font-semibold text-zinc-900">
                         <a href="{{ route('players.show', $catch->player) }}" class="kfc-link">{{ $catch->player->displayLabel() }}</a>

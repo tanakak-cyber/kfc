@@ -4,7 +4,15 @@
 
 @section('content')
     <h1 class="kfc-page-title">試合編集</h1>
-    <p class="kfc-muted mt-2">形式: <span class="font-semibold text-zinc-800">{{ $gameMatch->match_type->label() }}</span>
+    <p class="kfc-muted mt-2">
+        ステータス: <span class="font-semibold text-zinc-800">{{ $gameMatch->status->label() }}</span>
+        <span class="text-zinc-400">·</span>
+        開始 {{ $gameMatch->start_datetime->format('Y/m/d H:i') }}
+        @if ($gameMatch->end_datetime)
+            <span class="text-zinc-400">·</span> 終了 {{ $gameMatch->end_datetime->format('Y/m/d H:i') }}
+        @endif
+    </p>
+    <p class="kfc-muted mt-1">形式: <span class="font-semibold text-zinc-800">{{ $gameMatch->match_type->label() }}</span>
         @if ($gameMatch->isTeamMatch())
             — <a href="{{ route('admin.matches.teams.index', $gameMatch) }}" class="kfc-link">チーム・投稿URL</a>
         @else

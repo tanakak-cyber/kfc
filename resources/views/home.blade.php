@@ -47,7 +47,7 @@
                 <li class="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                         <a href="{{ route('matches.show', $m) }}" class="kfc-link text-base">{{ $m->title }}</a>
-                        <p class="mt-0.5 text-xs text-zinc-500">{{ $m->held_at->format('Y/m/d H:i') }} · {{ $m->field }}</p>
+                        <p class="mt-0.5 text-xs text-zinc-500">{{ $m->start_datetime->format('Y/m/d H:i') }} · {{ $m->field }}</p>
                     </div>
                     <div class="text-sm text-zinc-600">
                         @php $top = $m->matchResults->sortBy('rank')->first(); @endphp

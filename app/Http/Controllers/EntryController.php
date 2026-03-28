@@ -77,6 +77,14 @@ class EntryController extends Controller
             return back()->withErrors(['match' => 'この試合は結果確定済みのため投稿できません。']);
         }
 
+        if ($team->gameMatch->isBeforeStartDatetime()) {
+            return back()->withErrors(['match' => '試合開始前のため投稿できません。']);
+        }
+
+        if ($team->gameMatch->isAtOrAfterEndDatetime()) {
+            return back()->withErrors(['match' => '試合終了後のため投稿できません。']);
+        }
+
         $playerIds = $team->players->pluck('id')->all();
 
         $validated = $request->validate([
@@ -135,6 +143,14 @@ class EntryController extends Controller
 
         if ($participant->gameMatch->is_finalized) {
             return back()->withErrors(['match' => 'この試合は結果確定済みのため投稿できません。']);
+        }
+
+        if ($participant->gameMatch->isBeforeStartDatetime()) {
+            return back()->withErrors(['match' => '試合開始前のため投稿できません。']);
+        }
+
+        if ($participant->gameMatch->isAtOrAfterEndDatetime()) {
+            return back()->withErrors(['match' => '試合終了後のため投稿できません。']);
         }
 
         $validated = $request->validate([

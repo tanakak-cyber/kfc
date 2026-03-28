@@ -20,7 +20,7 @@ final class SeasonCatchFeed
             ->join('matches', 'matches.id', '=', 'catches.match_id')
             ->where('matches.season_id', $seasonId)
             ->where('catches.approval_status', CatchApprovalStatus::Approved)
-            ->orderByDesc('matches.held_at')
+            ->orderByDesc('matches.start_datetime')
             ->orderByDesc('catches.id')
             ->with(['player', 'team', 'images', 'gameMatch'])
             ->get();

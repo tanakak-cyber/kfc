@@ -26,7 +26,8 @@
                 <tr>
                     <th class="px-4 py-3">試合</th>
                     <th class="px-4 py-3">形式</th>
-                    <th class="px-4 py-3">日時</th>
+                    <th class="px-4 py-3">開始</th>
+                    <th class="px-4 py-3">ステータス</th>
                     <th class="px-4 py-3">シーズン</th>
                     <th class="px-4 py-3 text-right">操作</th>
                 </tr>
@@ -36,7 +37,8 @@
                     <tr class="kfc-trow">
                         <td class="px-4 py-3 font-semibold text-zinc-900">{{ $m->title }}</td>
                         <td class="px-4 py-3 text-zinc-600">{{ $m->match_type->label() }}</td>
-                        <td class="px-4 py-3 text-zinc-600">{{ $m->held_at->format('Y/m/d H:i') }}</td>
+                        <td class="px-4 py-3 text-zinc-600">{{ $m->start_datetime->format('Y/m/d H:i') }}</td>
+                        <td class="px-4 py-3 text-zinc-600">{{ $m->status->label() }}</td>
                         <td class="px-4 py-3 text-zinc-600">{{ $m->season->name }}</td>
                         <td class="px-4 py-3 text-right text-sm">
                             @if ($m->isTeamMatch())
