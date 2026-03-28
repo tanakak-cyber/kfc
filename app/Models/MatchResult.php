@@ -10,6 +10,7 @@ class MatchResult extends Model
     protected $fillable = [
         'match_id',
         'team_id',
+        'player_id',
         'rank',
         'total_weight',
         'big_fish_weight',
@@ -32,5 +33,10 @@ class MatchResult extends Model
     public function team(): BelongsTo
     {
         return $this->belongsTo(Team::class);
+    }
+
+    public function player(): BelongsTo
+    {
+        return $this->belongsTo(Player::class);
     }
 }

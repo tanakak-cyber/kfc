@@ -23,7 +23,7 @@ class SeasonController extends Controller
     {
         $matches = GameMatch::query()
             ->where('season_id', $season->id)
-            ->with(['matchResults' => fn ($q) => $q->orderBy('rank')->with('team')])
+            ->with(['matchResults' => fn ($q) => $q->orderBy('rank')->with(['team', 'player'])])
             ->orderByDesc('held_at')
             ->get();
 

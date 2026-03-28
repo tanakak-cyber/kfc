@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\MatchStatus;
+use App\Enums\MatchType;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,6 +14,7 @@ class GameMatch extends Model
 
     protected $fillable = [
         'season_id',
+        'match_type',
         'title',
         'held_at',
         'field',
@@ -28,6 +30,7 @@ class GameMatch extends Model
             'held_at' => 'datetime',
             'is_finalized' => 'boolean',
             'status' => MatchStatus::class,
+            'match_type' => MatchType::class,
         ];
     }
 
@@ -49,5 +52,20 @@ class GameMatch extends Model
     public function matchResults(): HasMany
     {
         return $this->hasMany(MatchResult::class, 'match_id');
+    }
+
+    public function matchParticipants(): HasMany
+    {
+        return $this->hasMany(MatchParticipant::class, 'match_id');
+    }
+
+    public function isTeamMatch(): bool
+    {
+        return $this->match_type === MatchType::Team;
+    }
+
+    public function isIndividualMatch(): bool
+    {
+        return $this->match_type === MatchType::Individual;
     }
 }

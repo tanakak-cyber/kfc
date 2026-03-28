@@ -14,13 +14,14 @@ class PublicMatchController extends Controller
         $gameMatch->load([
             'season',
             'teams.players',
-            'matchResults' => fn ($q) => $q->orderBy('rank')->with('team.players'),
+            'matchParticipants.player',
+            'matchResults' => fn ($q) => $q->orderBy('rank')->with(['team.players', 'player']),
         ]);
 
         $catches = FishCatch::query()
             ->where('match_id', $gameMatch->id)
             ->where('approval_status', CatchApprovalStatus::Approved)
-            ->with(['player', 'team', 'images'])
+            ->with(['player', 'images', 'team'])
             ->orderByDesc('weight_kg')
             ->get();
 

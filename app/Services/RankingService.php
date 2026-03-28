@@ -3,6 +3,9 @@
 namespace App\Services;
 
 use App\Enums\CatchApprovalStatus;
+use App\Models\FishCatch;
+use App\Models\GameMatch;
+use App\Models\Player;
 use App\Models\Team;
 use Illuminate\Support\Collection;
 
@@ -14,6 +17,35 @@ class RankingService
     public function teamScore(Team $team, bool $approvedOnly): array
     {
         $query = $team->catches()->orderByDesc('weight_kg');
+
+        if ($approvedOnly) {
+            $query->where('approval_status', CatchApprovalStatus::Approved);
+        } else {
+            $query->whereIn('approval_status', [
+                CatchApprovalStatus::Pending,
+                CatchApprovalStatus::Approved,
+            ]);
+        }
+
+        $weights = $query->limit(3)->pluck('weight_kg')->map(fn ($w) => (float) $w);
+        $total = round($weights->sum(), 3);
+        $bigFish = $weights->isEmpty() ? 0.0 : round((float) $weights->max(), 3);
+
+        return [
+            'total_weight' => $total,
+            'big_fish_weight' => $bigFish,
+        ];
+    }
+
+    /**
+     * @return array{total_weight: float, big_fish_weight: float}
+     */
+    public function playerMatchScore(Player $player, GameMatch $match, bool $approvedOnly): array
+    {
+        $query = FishCatch::query()
+            ->where('match_id', $match->id)
+            ->where('player_id', $player->id)
+            ->orderByDesc('weight_kg');
 
         if ($approvedOnly) {
             $query->where('approval_status', CatchApprovalStatus::Approved);
@@ -53,6 +85,39 @@ class RankingService
             ];
         })->values()->all();
 
+        return $this->assignRanksAndPoints($rows, $approvedOnly);
+    }
+
+    /**
+     * @return list<array{player_id: int, total_weight: float, big_fish_weight: float, rank: int, points: int}>
+     */
+    public function rankPlayers(GameMatch $match, Collection $players, bool $approvedOnly): array
+    {
+        $rows = $players->map(function (Player $player) use ($match, $approvedOnly) {
+            $score = $this->playerMatchScore($player, $match, $approvedOnly);
+            $approvedCount = FishCatch::query()
+                ->where('match_id', $match->id)
+                ->where('player_id', $player->id)
+                ->where('approval_status', CatchApprovalStatus::Approved)
+                ->count();
+
+            return [
+                'player_id' => $player->id,
+                'total_weight' => $score['total_weight'],
+                'big_fish_weight' => $score['big_fish_weight'],
+                'approved_catch_count' => $approvedCount,
+            ];
+        })->values()->all();
+
+        return $this->assignRanksAndPointsForPlayers($rows, $approvedOnly);
+    }
+
+    /**
+     * @param  list<array{team_id: int, total_weight: float, big_fish_weight: float, approved_catch_count: int}>  $rows
+     * @return list<array{team_id: int, total_weight: float, big_fish_weight: float, rank: int, points: int}>
+     */
+    private function assignRanksAndPoints(array $rows, bool $approvedOnly): array
+    {
         usort($rows, function (array $a, array $b): int {
             $tw = $b['total_weight'] <=> $a['total_weight'];
             if ($tw !== 0) {
@@ -62,6 +127,36 @@ class RankingService
             return $b['big_fish_weight'] <=> $a['big_fish_weight'];
         });
 
+        $this->applyRankPoints($rows, $approvedOnly);
+
+        return $rows;
+    }
+
+    /**
+     * @param  list<array{player_id: int, total_weight: float, big_fish_weight: float, approved_catch_count: int}>  $rows
+     * @return list<array{player_id: int, total_weight: float, big_fish_weight: float, rank: int, points: int}>
+     */
+    private function assignRanksAndPointsForPlayers(array $rows, bool $approvedOnly): array
+    {
+        usort($rows, function (array $a, array $b): int {
+            $tw = $b['total_weight'] <=> $a['total_weight'];
+            if ($tw !== 0) {
+                return $tw;
+            }
+
+            return $b['big_fish_weight'] <=> $a['big_fish_weight'];
+        });
+
+        $this->applyRankPoints($rows, $approvedOnly);
+
+        return $rows;
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $rows
+     */
+    private function applyRankPoints(array &$rows, bool $approvedOnly): void
+    {
         $n = count($rows);
         $i = 0;
         $rank = 1;
@@ -96,8 +191,6 @@ class RankingService
             unset($row['approved_catch_count']);
         }
         unset($row);
-
-        return $rows;
     }
 
     public static function pointsForRank(int $rank): int

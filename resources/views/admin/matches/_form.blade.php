@@ -1,3 +1,20 @@
+@if (! isset($gameMatch))
+    <div>
+        <span class="kfc-label">試合形式</span>
+        <div class="mt-3 flex flex-wrap gap-4 text-sm">
+            @php $mt = old('match_type', 'team'); @endphp
+            <label class="inline-flex cursor-pointer items-center gap-2">
+                <input type="radio" name="match_type" value="team" class="text-emerald-600 focus:ring-emerald-500/40" @checked($mt === 'team') required>
+                <span>チーム戦</span>
+            </label>
+            <label class="inline-flex cursor-pointer items-center gap-2">
+                <input type="radio" name="match_type" value="individual" class="text-emerald-600 focus:ring-emerald-500/40" @checked($mt === 'individual')>
+                <span>個人戦</span>
+            </label>
+        </div>
+        <p class="mt-2 text-xs text-zinc-500">作成後は形式を変更できません。個人戦は参加者ごとに投稿URLを発行します。</p>
+    </div>
+@endif
 <div>
     <label class="kfc-label">シーズン</label>
     <select name="season_id" class="kfc-select mt-2" required>

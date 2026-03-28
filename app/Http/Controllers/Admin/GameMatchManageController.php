@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Enums\MatchStatus;
+use App\Enums\MatchType;
 use App\Http\Controllers\Controller;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
@@ -10,6 +11,9 @@ use App\Models\Season;
 use App\Services\MatchResultSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class GameMatchManageController extends Controller
@@ -49,7 +53,7 @@ class GameMatchManageController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
-        $data = $this->validated($request);
+        $data = $this->validatedForStore($request);
         $data['is_finalized'] = false;
         $match = GameMatch::query()->create($data);
         $this->matchResults->syncMatch($match, true);
@@ -66,7 +70,6 @@ class GameMatchManageController extends Controller
         $matchCatches = FishCatch::query()
             ->where('match_id', $gameMatch->id)
             ->with(['team', 'player', 'images'])
-            ->orderBy('team_id')
             ->orderByDesc('created_at')
             ->get();
 
@@ -79,11 +82,44 @@ class GameMatchManageController extends Controller
             return back()->withErrors(['match' => '確定済みの試合は編集できません。']);
         }
 
-        $gameMatch->update($this->validated($request));
+        $gameMatch->update($this->validatedForUpdate($request));
         $this->matchResults->syncMatch($gameMatch, true);
 
         return redirect()->route('admin.matches.index', ['season_id' => $gameMatch->season_id])
             ->with('status', '試合を更新しました。');
+    }
+
+    public function destroy(GameMatch $gameMatch): RedirectResponse
+    {
+        if ($gameMatch->is_finalized) {
+            return redirect()
+                ->route('admin.matches.edit', $gameMatch)
+                ->withErrors(['match' => '確定済みの試合は削除できません。先に「確定を解除」してから削除してください。']);
+        }
+
+        $season = $gameMatch->season()->firstOrFail();
+        $seasonId = $gameMatch->season_id;
+
+        DB::transaction(function () use ($gameMatch): void {
+            $catches = FishCatch::query()
+                ->where('match_id', $gameMatch->id)
+                ->with('images')
+                ->get();
+
+            foreach ($catches as $catch) {
+                foreach ($catch->images as $img) {
+                    Storage::disk('public')->delete($img->path);
+                }
+            }
+
+            $gameMatch->delete();
+        });
+
+        $this->matchResults->rebuildSeasonPlayerPoints($season);
+
+        return redirect()
+            ->route('admin.matches.index', ['season_id' => $seasonId])
+            ->with('status', '試合を削除しました。');
     }
 
     public function finalize(GameMatch $gameMatch): RedirectResponse
@@ -118,9 +154,6 @@ class GameMatchManageController extends Controller
         return back()->with('status', '試合の確定を解除しました。シーズン個人ポイントを再集計しました（この試合のポイントは集計から外れます）。');
     }
 
-    /**
-     * 所属シーズンの season_player_points を、確定済み試合の match_results から再構築する。
-     */
     public function recalculateSeasonPlayerPoints(GameMatch $gameMatch): RedirectResponse
     {
         $this->matchResults->rebuildSeasonPlayerPoints($gameMatch->season);
@@ -128,10 +161,6 @@ class GameMatchManageController extends Controller
         return back()->with('status', '「'.$gameMatch->season->name.'」の個人順位を再集計しました。');
     }
 
-    /**
-     * 承認済み釣果から match_results を現在のルールで再生成し、続けてシーズン個人順位も更新する。
-     * （確定済み試合で古いポイントが残っている場合に使用）
-     */
     public function resyncMatchResultsAndSeason(GameMatch $gameMatch): RedirectResponse
     {
         $this->matchResults->syncMatch($gameMatch, true);
@@ -143,7 +172,29 @@ class GameMatchManageController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validated(Request $request): array
+    private function validatedForStore(Request $request): array
+    {
+        $data = $request->validate([
+            'season_id' => ['required', 'exists:seasons,id'],
+            'match_type' => ['required', Rule::in(array_map(fn (MatchType $t) => $t->value, MatchType::cases()))],
+            'title' => ['required', 'string', 'max:255'],
+            'held_at' => ['required', 'date'],
+            'field' => ['required', 'string', 'max:255'],
+            'launch_shop' => ['nullable', 'string', 'max:255'],
+            'rules' => ['nullable', 'string'],
+            'status' => ['required', 'in:scheduled,in_progress,completed'],
+        ]);
+
+        $data['status'] = MatchStatus::from($data['status']);
+        $data['match_type'] = MatchType::from($data['match_type']);
+
+        return $data;
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function validatedForUpdate(Request $request): array
     {
         $data = $request->validate([
             'season_id' => ['required', 'exists:seasons,id'],

@@ -32,7 +32,7 @@ class HomeController extends Controller
         }
 
         $recentMatches = GameMatch::query()
-            ->with(['season', 'matchResults' => fn ($q) => $q->orderBy('rank')->with('team')])
+            ->with(['season', 'matchResults' => fn ($q) => $q->orderBy('rank')->with(['team', 'player'])])
             ->when($currentSeason, fn ($q) => $q->where('season_id', $currentSeason->id))
             ->orderByDesc('held_at')
             ->limit(12)

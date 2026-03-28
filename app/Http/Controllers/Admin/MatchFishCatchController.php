@@ -6,6 +6,7 @@ use App\Enums\CatchApprovalStatus;
 use App\Http\Controllers\Controller;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
+use App\Models\MatchParticipant;
 use App\Services\CatchImageProcessor;
 use App\Services\MatchResultSyncService;
 use Illuminate\Http\RedirectResponse;
@@ -29,15 +30,35 @@ class MatchFishCatchController extends Controller
 
         $fishCatch->load(['team.players', 'player', 'images']);
 
-        return view('admin.matches.catches.edit', compact('gameMatch', 'fishCatch'));
+        $allowedPlayers = $gameMatch->isIndividualMatch()
+            ? MatchParticipant::query()
+                ->where('match_id', $gameMatch->id)
+                ->with('player')
+                ->get()
+                ->pluck('player')
+                ->filter()
+                ->values()
+            : ($fishCatch->team?->players ?? collect());
+
+        return view('admin.matches.catches.edit', compact('gameMatch', 'fishCatch', 'allowedPlayers'));
     }
 
     public function update(Request $request, GameMatch $gameMatch, FishCatch $fishCatch): RedirectResponse
     {
         $this->assertCatchBelongsToMatch($gameMatch, $fishCatch);
 
-        $fishCatch->load('team.players');
-        $playerIds = $fishCatch->team->players->pluck('id')->all();
+        if ($gameMatch->isIndividualMatch()) {
+            $playerIds = MatchParticipant::query()
+                ->where('match_id', $gameMatch->id)
+                ->pluck('player_id')
+                ->all();
+        } else {
+            $fishCatch->load('team.players');
+            if ($fishCatch->team === null) {
+                return back()->withErrors(['player_id' => 'チームが紐づいていません。']);
+            }
+            $playerIds = $fishCatch->team->players->pluck('id')->all();
+        }
 
         $validated = $request->validate([
             'player_id' => ['required', 'integer', Rule::in($playerIds)],
@@ -49,6 +70,13 @@ class MatchFishCatchController extends Controller
             'photos' => ['nullable', 'array', 'max:10'],
             'photos.*' => ['file', 'image', 'max:10240'],
         ]);
+
+        if ($gameMatch->isTeamMatch()) {
+            $fishCatch->loadMissing('team.players');
+            if ($fishCatch->team !== null && ! $fishCatch->team->players->contains('id', (int) $validated['player_id'])) {
+                return back()->withErrors(['player_id' => '選択した選手はこのチームに所属していません。']);
+            }
+        }
 
         try {
             DB::transaction(function () use ($request, $fishCatch, $validated): void {

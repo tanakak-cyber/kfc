@@ -4,12 +4,42 @@
 
 @section('content')
     <h1 class="kfc-page-title">試合編集</h1>
+    <p class="kfc-muted mt-2">形式: <span class="font-semibold text-zinc-800">{{ $gameMatch->match_type->label() }}</span>
+        @if ($gameMatch->isTeamMatch())
+            — <a href="{{ route('admin.matches.teams.index', $gameMatch) }}" class="kfc-link">チーム・投稿URL</a>
+        @else
+            — <a href="{{ route('admin.matches.participants.index', $gameMatch) }}" class="kfc-link">参加者・投稿URL</a>
+        @endif
+    </p>
     <form method="post" action="{{ route('admin.matches.update', $gameMatch) }}" class="kfc-card mt-8 space-y-5">
         @csrf
         @method('put')
         @include('admin.matches._form', ['gameMatch' => $gameMatch, 'seasons' => $seasons, 'selectedSeasonId' => $gameMatch->season_id])
         <button type="submit" class="kfc-btn-primary">更新</button>
     </form>
+
+    <div class="kfc-card mt-8 border-red-200/60 bg-red-50/20 ring-red-500/5">
+        <h2 class="kfc-section-title text-red-900">試合を削除</h2>
+        <p class="mt-3 text-sm leading-relaxed text-zinc-700">
+            紐づくチーム・参加者・釣果・順位データをすべて削除します（釣果画像ファイルも削除）。<strong>未確定の試合のみ</strong>削除できます。
+        </p>
+        @if ($gameMatch->is_finalized)
+            <p class="mt-4 text-sm text-red-800">確定済みのため削除できません。先に「確定を解除」してください。</p>
+        @else
+            <form
+                method="post"
+                action="{{ route('admin.matches.destroy', $gameMatch) }}"
+                class="mt-5"
+                onsubmit="return confirm('この試合を完全に削除しますか？\n\nこの操作は取り消せません。');"
+            >
+                @csrf
+                @method('delete')
+                <button type="submit" class="rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-800 shadow-sm transition hover:bg-red-50">
+                    この試合を削除する
+                </button>
+            </form>
+        @endif
+    </div>
 
     <div class="kfc-card mt-8">
         <h2 class="kfc-section-title">結果確定</h2>
@@ -82,7 +112,7 @@
                         @foreach ($matchCatches as $c)
                             <tr class="kfc-trow">
                                 <td class="px-4 py-3 whitespace-nowrap text-zinc-600">{{ $c->created_at->format('Y/m/d H:i') }}</td>
-                                <td class="px-4 py-3 font-medium text-zinc-900">{{ $c->team->name }}</td>
+                                <td class="px-4 py-3 font-medium text-zinc-900">{{ $c->team?->name ?? '—（個人戦）' }}</td>
                                 <td class="px-4 py-3">{{ $c->player->displayLabel() }}</td>
                                 <td class="px-4 py-3 tabular-nums text-zinc-700">{{ $c->length_cm }} / {{ $c->weight_kg }}</td>
                                 <td class="px-4 py-3">

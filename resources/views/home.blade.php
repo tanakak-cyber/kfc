@@ -50,9 +50,11 @@
                         <p class="mt-0.5 text-xs text-zinc-500">{{ $m->held_at->format('Y/m/d H:i') }} · {{ $m->field }}</p>
                     </div>
                     <div class="text-sm text-zinc-600">
-                        @php $top = $m->matchResults->first(); @endphp
-                        @if ($top && $top->team)
+                        @php $top = $m->matchResults->sortBy('rank')->first(); @endphp
+                        @if ($top && $m->isTeamMatch() && $top->team)
                             <span class="kfc-badge">首位: {{ $top->team->name }}（{{ $top->total_weight }} kg）</span>
+                        @elseif ($top && $m->isIndividualMatch() && $top->player)
+                            <span class="kfc-badge">首位: {{ $top->player->displayLabel() }}（{{ $top->total_weight }} kg）</span>
                         @else
                             <span class="kfc-badge-warn">順位未確定</span>
                         @endif

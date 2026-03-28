@@ -39,6 +39,11 @@ class FishCatch extends Model
         return $this->belongsTo(Team::class, 'team_id');
     }
 
+    public function hasTeam(): bool
+    {
+        return $this->team_id !== null;
+    }
+
     public function player(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'player_id');

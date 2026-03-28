@@ -8,7 +8,7 @@
         <span class="text-zinc-400"> · 試合編集</span>
     </p>
     <h1 class="kfc-page-title mt-1">釣果を編集</h1>
-    <p class="kfc-muted mt-2">{{ $fishCatch->team->name }} · {{ $fishCatch->created_at->format('Y/m/d H:i') }} 投稿</p>
+    <p class="kfc-muted mt-2">{{ $fishCatch->team?->name ?? '個人戦' }} · {{ $fishCatch->created_at->format('Y/m/d H:i') }} 投稿</p>
 
     <form
         method="post"
@@ -22,7 +22,7 @@
         <div>
             <label class="kfc-label" for="player_id">釣った人</label>
             <select name="player_id" id="player_id" class="kfc-select mt-2" required>
-                @foreach ($fishCatch->team->players as $p)
+                @foreach ($allowedPlayers as $p)
                     <option value="{{ $p->id }}" @selected(old('player_id', $fishCatch->player_id) == $p->id)>{{ $p->displayLabel() }}</option>
                 @endforeach
             </select>

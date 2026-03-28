@@ -25,9 +25,11 @@
                     };
                 @endphp
                 <a href="{{ route('admin.dashboard') }}" class="{{ $link(request()->routeIs('admin.dashboard')) }}">ダッシュボード</a>
+                <a href="{{ route('admin.settings.edit') }}" class="{{ $link(request()->routeIs('admin.settings.*')) }}">ロゴ・サイト名</a>
                 <a href="{{ route('admin.site.edit') }}" class="{{ $link(request()->routeIs('admin.site.*')) }}">サイト設定</a>
                 <a href="{{ route('admin.users.index') }}" class="{{ $link(request()->routeIs('admin.users.*')) }}">管理者アカウント</a>
                 <a href="{{ route('admin.seasons.index') }}" class="{{ $link(request()->routeIs('admin.seasons.*')) }}">シーズン</a>
+                <a href="{{ route('admin.match-surveys.index') }}" class="{{ $link(request()->routeIs('admin.match-surveys.*')) }}">出欠アンケート</a>
                 <a href="{{ route('admin.matches.index') }}" class="{{ $link(request()->routeIs('admin.matches.*')) }}">試合</a>
                 <a href="{{ route('admin.players.index') }}" class="{{ $link(request()->routeIs('admin.players.*')) }}">選手</a>
                 <a href="{{ route('admin.catches.pending') }}" class="{{ $link(request()->routeIs('admin.catches.*')) }}">釣果承認</a>
@@ -60,5 +62,6 @@
         </div>
     </div>
     <x-image-lightbox />
+    @stack('scripts')
 </body>
 </html>

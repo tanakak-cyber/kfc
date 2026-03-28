@@ -1,10 +1,13 @@
 <?php
 
+use App\Http\Controllers\Admin\AppSettingsController;
 use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\CatchModerationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GameMatchManageController;
 use App\Http\Controllers\Admin\MatchFishCatchController;
+use App\Http\Controllers\Admin\MatchParticipantManageController;
+use App\Http\Controllers\Admin\MatchSurveyManageController;
 use App\Http\Controllers\Admin\MatchTeamManageController;
 use App\Http\Controllers\Admin\PlayerManageController;
 use App\Http\Controllers\Admin\SeasonManageController;
@@ -15,6 +18,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PlayerProfileController;
 use App\Http\Controllers\PublicMatchController;
 use App\Http\Controllers\SeasonController;
+use App\Http\Controllers\SurveyController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -29,6 +33,9 @@ Route::post('/entry/{token}', [EntryController::class, 'store'])->name('entry.st
 
 Route::get('/players/{player}', [PlayerProfileController::class, 'show'])->name('players.show');
 
+Route::get('/survey/{token}', [SurveyController::class, 'show'])->name('survey.show');
+Route::post('/survey/{token}', [SurveyController::class, 'store'])->name('survey.store');
+
 Route::middleware('guest')->group(function (): void {
     Route::get('/admin/login', [LoginController::class, 'create'])->name('login');
     Route::post('/admin/login', [LoginController::class, 'store']);
@@ -41,15 +48,23 @@ Route::middleware('auth')->group(function (): void {
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/', DashboardController::class)->name('dashboard');
 
+    Route::get('settings', [AppSettingsController::class, 'edit'])->name('settings.edit');
+    Route::put('settings', [AppSettingsController::class, 'update'])->name('settings.update');
+
     Route::get('site', [SiteSettingsController::class, 'edit'])->name('site.edit');
     Route::put('site', [SiteSettingsController::class, 'update'])->name('site.update');
 
     Route::resource('seasons', SeasonManageController::class)->except(['show']);
     Route::resource('players', PlayerManageController::class)->except(['show']);
 
+    Route::resource('match-surveys', MatchSurveyManageController::class)->only(['index', 'create', 'store', 'show']);
+    Route::post('match-surveys/{match_survey}/close', [MatchSurveyManageController::class, 'close'])->name('match-surveys.close');
+    Route::post('match-surveys/{match_survey}/reopen', [MatchSurveyManageController::class, 'reopen'])->name('match-surveys.reopen');
+    Route::post('match-surveys/{match_survey}/finalize', [MatchSurveyManageController::class, 'finalize'])->name('match-surveys.finalize');
+
     Route::resource('matches', GameMatchManageController::class)
         ->parameters(['matches' => 'gameMatch'])
-        ->except(['show', 'destroy']);
+        ->except(['show']);
 
     Route::post('matches/{gameMatch}/finalize', [GameMatchManageController::class, 'finalize'])
         ->name('matches.finalize');
@@ -74,6 +89,15 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         ->name('matches.teams.store');
     Route::delete('matches/{gameMatch}/teams/{team}', [MatchTeamManageController::class, 'destroy'])
         ->name('matches.teams.destroy');
+
+    Route::get('matches/{gameMatch}/participants', [MatchParticipantManageController::class, 'index'])
+        ->name('matches.participants.index');
+    Route::post('matches/{gameMatch}/participants', [MatchParticipantManageController::class, 'store'])
+        ->name('matches.participants.store');
+    Route::post('matches/{gameMatch}/participants/{participant}/presence', [MatchParticipantManageController::class, 'updatePresence'])
+        ->name('matches.participants.presence');
+    Route::delete('matches/{gameMatch}/participants/{participant}', [MatchParticipantManageController::class, 'destroy'])
+        ->name('matches.participants.destroy');
 
     Route::resource('users', UserManageController::class)->except(['show']);
 

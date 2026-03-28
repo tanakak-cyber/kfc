@@ -8,7 +8,7 @@
 >
     <button
         type="button"
-        class="absolute inset-0 z-0 cursor-default bg-zinc-950/85 backdrop-blur-sm"
+        class="absolute inset-0 z-0 cursor-default bg-black/60 backdrop-blur-sm"
         onclick="window.kfcCloseImageLightbox()"
         aria-label="閉じる"
     ></button>

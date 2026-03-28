@@ -61,8 +61,10 @@
                         <span class="font-semibold text-zinc-800">上位:</span>
                         @if ($topThree->isEmpty())
                             —
+                        @elseif ($m->isTeamMatch())
+                            {{ $topThree->map(fn ($r) => ($r->team?->name ?? '—').'（'.$r->rank.'位）')->implode('、') }}
                         @else
-                            {{ $topThree->map(fn ($r) => $r->team->name.'（'.$r->rank.'位）')->implode('、') }}
+                            {{ $topThree->map(fn ($r) => ($r->player?->displayLabel() ?? '—').'（'.$r->rank.'位）')->implode('、') }}
                         @endif
                     </p>
                 </div>

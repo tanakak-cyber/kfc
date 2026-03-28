@@ -25,6 +25,7 @@
             <thead class="kfc-thead">
                 <tr>
                     <th class="px-4 py-3">試合</th>
+                    <th class="px-4 py-3">形式</th>
                     <th class="px-4 py-3">日時</th>
                     <th class="px-4 py-3">シーズン</th>
                     <th class="px-4 py-3 text-right">操作</th>
@@ -34,10 +35,15 @@
                 @foreach ($matches as $m)
                     <tr class="kfc-trow">
                         <td class="px-4 py-3 font-semibold text-zinc-900">{{ $m->title }}</td>
+                        <td class="px-4 py-3 text-zinc-600">{{ $m->match_type->label() }}</td>
                         <td class="px-4 py-3 text-zinc-600">{{ $m->held_at->format('Y/m/d H:i') }}</td>
                         <td class="px-4 py-3 text-zinc-600">{{ $m->season->name }}</td>
                         <td class="px-4 py-3 text-right text-sm">
-                            <a href="{{ route('admin.matches.teams.index', $m) }}" class="kfc-link">チーム</a>
+                            @if ($m->isTeamMatch())
+                                <a href="{{ route('admin.matches.teams.index', $m) }}" class="kfc-link">チーム</a>
+                            @else
+                                <a href="{{ route('admin.matches.participants.index', $m) }}" class="kfc-link">参加者</a>
+                            @endif
                             <span class="mx-1.5 text-zinc-300">·</span>
                             <a href="{{ route('admin.matches.edit', $m) }}" class="kfc-link">編集</a>
                             <span class="mx-1.5 text-zinc-300">·</span>

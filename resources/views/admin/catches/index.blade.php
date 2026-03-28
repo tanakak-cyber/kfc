@@ -30,7 +30,7 @@
                 <div class="mt-4 flex-1 text-sm sm:mt-0">
                     <p class="font-semibold text-zinc-900">{{ $catch->player->displayLabel() }}</p>
                     <p class="mt-1 text-zinc-600"><span class="tabular-nums">{{ $catch->length_cm }}</span> cm / <span class="tabular-nums">{{ $catch->weight_kg }}</span> kg</p>
-                    <p class="mt-2 text-zinc-500">{{ $catch->gameMatch->title }} — {{ $catch->team->name }}</p>
+                    <p class="mt-2 text-zinc-500">{{ $catch->gameMatch->title }} — {{ $catch->team?->name ?? '個人戦' }}</p>
                     <p class="text-xs text-zinc-400">{{ $catch->created_at->format('Y/m/d H:i') }}</p>
                     <div class="mt-5 flex flex-wrap gap-2">
                         <form method="post" action="{{ route('admin.catches.approve', $catch) }}">

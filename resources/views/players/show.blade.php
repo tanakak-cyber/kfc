@@ -62,7 +62,11 @@
                                 @if ($catch->gameMatch->season)
                                     · {{ $catch->gameMatch->season->name }}
                                 @endif
-                                · {{ $catch->team->name }}
+                                @if ($catch->team)
+                                    · {{ $catch->team->name }}
+                                @else
+                                    · 個人戦
+                                @endif
                             </p>
                             <p class="mt-2 text-zinc-700">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_kg }} kg</p>
                         </div>

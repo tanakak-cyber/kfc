@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\MatchType;
 use App\Http\Controllers\Controller;
 use App\Models\GameMatch;
 use App\Models\Player;
@@ -18,8 +19,14 @@ class MatchTeamManageController extends Controller
         private MatchResultSyncService $matchResults
     ) {}
 
-    public function index(GameMatch $gameMatch): View
+    public function index(GameMatch $gameMatch): View|RedirectResponse
     {
+        if ($gameMatch->match_type === MatchType::Individual) {
+            return redirect()
+                ->route('admin.matches.participants.index', $gameMatch)
+                ->with('status', '個人戦の試合です。参加者設定へ移動しました。');
+        }
+
         $gameMatch->load(['season', 'teams.players']);
         $players = Player::query()->orderBy('name')->get();
 
@@ -28,6 +35,10 @@ class MatchTeamManageController extends Controller
 
     public function store(Request $request, GameMatch $gameMatch): RedirectResponse
     {
+        if ($gameMatch->match_type === MatchType::Individual) {
+            return back()->withErrors(['name' => '個人戦ではチームを追加できません。']);
+        }
+
         if ($gameMatch->is_finalized) {
             return back()->withErrors(['name' => '確定済みの試合にチームは追加できません。']);
         }
@@ -52,6 +63,10 @@ class MatchTeamManageController extends Controller
 
     public function destroy(GameMatch $gameMatch, Team $team): RedirectResponse
     {
+        if ($gameMatch->match_type === MatchType::Individual) {
+            return back()->withErrors(['team' => '個人戦ではチームを削除できません。']);
+        }
+
         if ($gameMatch->is_finalized) {
             return back()->withErrors(['team' => '確定済みの試合からチームは削除できません。']);
         }

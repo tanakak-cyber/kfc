@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@yield('title', $siteTeamName)</title>
+    <title>@yield('title', $headerSiteTitle)</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
@@ -15,8 +15,10 @@
     <header class="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md backdrop-saturate-150">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
             <a href="{{ route('home') }}" class="group flex items-center gap-2">
-                <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-md shadow-emerald-900/20">K</span>
-                <span class="text-base font-bold tracking-tight text-zinc-900">{{ $siteTeamName }}</span>
+                <span class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md shadow-zinc-900/10 ring-1 ring-zinc-200/80">
+                    <img src="{{ $siteLogoUrl }}" alt="" class="h-full w-full object-contain p-1">
+                </span>
+                <span class="text-base font-bold tracking-tight text-zinc-900">{{ $headerSiteTitle }}</span>
             </a>
             <nav class="flex flex-wrap items-center gap-1 sm:gap-2">
                 <a href="{{ route('seasons.index') }}" class="kfc-nav-pill">シーズン</a>
@@ -50,7 +52,7 @@
         @yield('content')
     </main>
     <footer class="border-t border-zinc-200/80 bg-white/60 py-8 text-center text-xs text-zinc-500 backdrop-blur-sm">
-        <p>&copy; {{ date('Y') }} {{ $siteTeamName }}</p>
+        <p>&copy; {{ date('Y') }} {{ $headerSiteTitle }}</p>
     </footer>
     <x-image-lightbox />
 </body>

@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\SiteSetting;
+use App\Support\PublicStorageUrl;
 use App\Support\SiteHomeTagline;
 use App\Support\SiteTeamName;
 use Illuminate\Support\Facades\View;
@@ -23,8 +25,19 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer('*', function (\Illuminate\View\View $view): void {
-            $view->with('siteTeamName', SiteTeamName::get());
+            $siteTeamName = SiteTeamName::get();
+            $view->with('siteTeamName', $siteTeamName);
             $view->with('siteHomeTagline', SiteHomeTagline::get());
+
+            $branding = SiteSetting::query()->first();
+            $view->with(
+                'headerSiteTitle',
+                filled($branding?->site_name) ? (string) $branding->site_name : $siteTeamName
+            );
+            $view->with(
+                'siteLogoUrl',
+                PublicStorageUrl::fromDiskPath($branding?->logo_path) ?? '/images/logo-default.svg'
+            );
         });
     }
 }
