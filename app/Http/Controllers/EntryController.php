@@ -8,6 +8,7 @@ use App\Models\GameMatch;
 use App\Models\MatchParticipant;
 use App\Models\Team;
 use App\Services\CatchImageProcessor;
+use App\Services\EntryCatchPhotoExifValidator;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\UploadedFile;
@@ -20,7 +21,8 @@ use Illuminate\View\View;
 class EntryController extends Controller
 {
     public function __construct(
-        private CatchImageProcessor $images
+        private CatchImageProcessor $images,
+        private EntryCatchPhotoExifValidator $entryPhotoExif
     ) {}
 
     public function show(string $token): View
@@ -97,6 +99,7 @@ class EntryController extends Controller
         ]);
 
         $photoFiles = $this->validatedPhotoUploads($request);
+        $this->entryPhotoExif->assertAllPhotosWithinMatchWindow($team->gameMatch, $photoFiles);
 
         return $this->withEntrySubmitLock($token, function () use ($team, $validated, $photoFiles): RedirectResponse {
             try {
@@ -161,6 +164,7 @@ class EntryController extends Controller
         ]);
 
         $photoFiles = $this->validatedPhotoUploads($request);
+        $this->entryPhotoExif->assertAllPhotosWithinMatchWindow($participant->gameMatch, $photoFiles);
 
         return $this->withEntrySubmitLock($token, function () use ($participant, $validated, $photoFiles): RedirectResponse {
             try {

@@ -74,6 +74,9 @@
                 </div>
                 <div class="min-w-0 max-w-full">
                     <label class="kfc-label" for="entry-photos-input">写真（複数可）</label>
+                    <p class="mt-2 text-xs font-medium text-amber-900/90">
+                        ※標準カメラで撮影した画像のみ投稿可能です（編集・転送不可）
+                    </p>
                     <input
                         id="entry-photos-input"
                         type="file"

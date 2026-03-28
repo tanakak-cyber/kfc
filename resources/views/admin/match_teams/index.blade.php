@@ -18,6 +18,10 @@
                         投稿URL:
                         <a href="{{ route('entry.show', $team->entry_token) }}" class="kfc-link" target="_blank" rel="noopener noreferrer">{{ url('/entry/'.$team->entry_token) }}</a>
                     </p>
+                    @include('admin.partials.entry_share_copy_button', [
+                        'gameMatch' => $gameMatch,
+                        'entryUrl' => url('/entry/'.$team->entry_token),
+                    ])
                     @if (! $gameMatch->is_finalized)
                         <form method="post" action="{{ route('admin.matches.teams.destroy', [$gameMatch, $team]) }}" class="mt-3" onsubmit="return confirm('削除しますか？');">
                             @csrf

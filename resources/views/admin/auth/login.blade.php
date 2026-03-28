@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (! empty($siteNoindex))
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     <title>管理者ログイン — {{ $siteTeamName }}</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="flex min-h-screen items-center justify-center bg-zinc-100 px-4">

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Support\SiteHomeTagline;
+use App\Support\SiteNoindex;
 use App\Support\SiteTeamName;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,10 +31,13 @@ class SiteSettingsController extends Controller
             $homeTagline = SiteHomeTagline::DEFAULT;
         }
 
+        $siteNoindexEnabled = SiteNoindex::enabled();
+
         return view('admin.site.edit', [
             'teamName' => $teamName,
             'homeTagline' => $homeTagline,
             'homeTaglineDefault' => SiteHomeTagline::DEFAULT,
+            'siteNoindexEnabled' => $siteNoindexEnabled,
         ]);
     }
 
@@ -42,6 +46,7 @@ class SiteSettingsController extends Controller
         $data = $request->validate([
             'team_name' => ['required', 'string', 'max:120'],
             'home_tagline' => ['nullable', 'string', 'max:500'],
+            'site_noindex' => ['required', 'in:0,1'],
         ]);
 
         Setting::query()->updateOrCreate(
@@ -59,8 +64,18 @@ class SiteSettingsController extends Controller
             );
         }
 
+        if ($data['site_noindex'] === '1') {
+            Setting::query()->updateOrCreate(
+                ['key' => SiteNoindex::SETTING_KEY],
+                ['value' => '1']
+            );
+        } else {
+            Setting::query()->where('key', SiteNoindex::SETTING_KEY)->delete();
+        }
+
         SiteTeamName::forgetCache();
         SiteHomeTagline::forgetCache();
+        SiteNoindex::forgetCache();
 
         return redirect()
             ->route('admin.site.edit')

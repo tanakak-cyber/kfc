@@ -28,6 +28,10 @@
                             投稿URL:
                             <a href="{{ route('entry.show', $participant->entry_token) }}" class="kfc-link" target="_blank" rel="noopener noreferrer">{{ url('/entry/'.$participant->entry_token) }}</a>
                         </p>
+                        @include('admin.partials.entry_share_copy_button', [
+                            'gameMatch' => $gameMatch,
+                            'entryUrl' => url('/entry/'.$participant->entry_token),
+                        ])
                     @endif
                     @if (! $gameMatch->is_finalized)
                         <div class="mt-4 flex flex-wrap gap-3">

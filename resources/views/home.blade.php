@@ -3,13 +3,30 @@
 @section('title', 'トップ')
 
 @section('content')
-    <section class="relative mb-12 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-emerald-950 px-6 py-14 text-white shadow-2xl shadow-zinc-900/40 ring-1 ring-white/10 sm:px-10">
-        <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl"></div>
-        <div class="pointer-events-none absolute -bottom-16 left-10 h-48 w-48 rounded-full bg-teal-500/15 blur-3xl"></div>
-        <div class="relative">
+    <section class="relative mb-12 min-h-[220px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-emerald-950 text-white shadow-2xl shadow-zinc-900/40 ring-1 ring-white/10 sm:min-h-[260px] sm:px-10 lg:min-h-[300px]">
+        @if (filled($siteHeroImageUrl))
+            <div class="pointer-events-none absolute inset-0">
+                <img src="{{ $siteHeroImageUrl }}" alt="" class="h-full w-full object-cover" decoding="async" fetchpriority="high">
+            </div>
+            <div class="pointer-events-none absolute inset-0 bg-black/40"></div>
+        @else
+            <div class="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-emerald-400/20 blur-3xl"></div>
+            <div class="pointer-events-none absolute -bottom-16 left-10 h-48 w-48 rounded-full bg-teal-500/15 blur-3xl"></div>
+        @endif
+        <div class="relative px-6 py-14 sm:px-0">
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-300/90">ブラックバス釣り大会</p>
-            <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">{{ $siteTeamName }}</h1>
-            <p class="mt-4 max-w-2xl text-sm leading-relaxed text-zinc-300 sm:text-base">{{ $siteHomeTagline }}</p>
+            <h1
+                @class([
+                    'mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl',
+                    filled($siteHeroImageUrl) ? 'drop-shadow-[0_2px_8px_rgba(0,0,0,0.85)]' : '',
+                ])
+            >{{ $siteTeamName }}</h1>
+            <p
+                @class([
+                    'mt-4 max-w-2xl text-sm leading-relaxed sm:text-base',
+                    filled($siteHeroImageUrl) ? 'text-zinc-100 drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]' : 'text-zinc-300',
+                ])
+            >{{ $siteHomeTagline }}</p>
         </div>
     </section>
 

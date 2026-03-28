@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (! empty($siteNoindex))
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     <title>@yield('title', $headerSiteTitle)</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">

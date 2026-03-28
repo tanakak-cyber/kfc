@@ -3,7 +3,11 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    @if (! empty($siteNoindex))
+        <meta name="robots" content="noindex, nofollow">
+    @endif
     <title>@yield('title', '管理') — {{ $siteTeamName }}</title>
+    @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
@@ -25,7 +29,7 @@
                     };
                 @endphp
                 <a href="{{ route('admin.dashboard') }}" class="{{ $link(request()->routeIs('admin.dashboard')) }}">ダッシュボード</a>
-                <a href="{{ route('admin.settings.edit') }}" class="{{ $link(request()->routeIs('admin.settings.*')) }}">ロゴ・サイト名</a>
+                <a href="{{ route('admin.settings.edit') }}" class="{{ $link(request()->routeIs('admin.settings.*')) }}">ロゴ・メイン画像</a>
                 <a href="{{ route('admin.site.edit') }}" class="{{ $link(request()->routeIs('admin.site.*')) }}">サイト設定</a>
                 <a href="{{ route('admin.users.index') }}" class="{{ $link(request()->routeIs('admin.users.*')) }}">管理者アカウント</a>
                 <a href="{{ route('admin.seasons.index') }}" class="{{ $link(request()->routeIs('admin.seasons.*')) }}">シーズン</a>

@@ -12,10 +12,16 @@ class SiteSetting extends Model
     protected $fillable = [
         'site_name',
         'logo_path',
+        'home_hero_image_path',
     ];
 
     public function logoPublicUrl(): ?string
     {
         return PublicStorageUrl::fromDiskPath($this->logo_path);
+    }
+
+    public function homeHeroPublicUrl(): ?string
+    {
+        return PublicStorageUrl::fromDiskPath($this->home_hero_image_path);
     }
 }

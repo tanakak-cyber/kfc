@@ -35,6 +35,24 @@
             >{{ old('home_tagline', $homeTagline) }}</textarea>
             <p class="mt-2 text-xs text-zinc-500">ヒーロー見出し直下の説明文です。空欄で保存すると初期の定型文に戻ります（最大500文字）。</p>
         </div>
+        <div class="rounded-xl border border-zinc-200 bg-zinc-50/80 p-4">
+            <label class="flex cursor-pointer items-start gap-3">
+                <input type="hidden" name="site_noindex" value="0">
+                <input
+                    type="checkbox"
+                    name="site_noindex"
+                    value="1"
+                    class="mt-1 h-4 w-4 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500"
+                    @checked(old('site_noindex', $siteNoindexEnabled ? '1' : '0') === '1')
+                >
+                <span>
+                    <span class="kfc-label !mb-0">全ページに noindex を付与する</span>
+                    <span class="mt-1 block text-xs font-normal text-zinc-600">
+                        オンにすると、公開ページ・管理画面・ログイン画面のすべての HTML に <code class="rounded bg-white px-1 font-mono text-[0.7rem] text-zinc-800">&lt;meta name=&quot;robots&quot; content=&quot;noindex, nofollow&quot;&gt;</code> を出力し、検索エンジンのインデックスを避けやすくします。
+                    </span>
+                </span>
+            </label>
+        </div>
         <button type="submit" class="kfc-btn-primary">保存</button>
     </form>
 @endsection
