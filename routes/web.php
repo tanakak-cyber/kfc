@@ -61,6 +61,7 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::post('match-surveys/{match_survey}/close', [MatchSurveyManageController::class, 'close'])->name('match-surveys.close');
     Route::post('match-surveys/{match_survey}/reopen', [MatchSurveyManageController::class, 'reopen'])->name('match-surveys.reopen');
     Route::post('match-surveys/{match_survey}/finalize', [MatchSurveyManageController::class, 'finalize'])->name('match-surveys.finalize');
+    Route::delete('match-surveys/{match_survey}', [MatchSurveyManageController::class, 'destroy'])->name('match-surveys.destroy');
 
     Route::resource('matches', GameMatchManageController::class)
         ->parameters(['matches' => 'gameMatch'])

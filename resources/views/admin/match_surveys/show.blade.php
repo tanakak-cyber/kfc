@@ -18,9 +18,16 @@
         </p>
         @if ($survey->createdMatch)
             <p class="mt-4 text-sm text-zinc-600">
-                作成された試合:
+                @if ($survey->status === \App\Enums\SurveyStatus::Finalized)
+                    直近に作成した試合（アンケートに紐づくリンク）:
+                @else
+                    作成された試合:
+                @endif
                 <a href="{{ route('admin.matches.edit', $survey->createdMatch) }}" class="kfc-link">{{ $survey->createdMatch->title }}</a>
             </p>
+            @if ($survey->status === \App\Enums\SurveyStatus::Finalized)
+                <p class="mt-2 text-xs text-zinc-500">複数回試合作成した場合も、ここは最後に作成した試合のみ表示します。以前の試合は試合一覧から開いてください。</p>
+            @endif
         @endif
     </div>
 
@@ -122,16 +129,21 @@
         @endif
     </div>
 
-    @if ($survey->status !== \App\Enums\SurveyStatus::Finalized && $survey->dates->isNotEmpty() && $survey->fields->isNotEmpty())
+    @if ($survey->dates->isNotEmpty() && $survey->fields->isNotEmpty())
         <div class="kfc-card mt-8 border-emerald-200/60 bg-emerald-50/20 ring-emerald-500/10">
-            <h2 class="kfc-section-title">試合を確定する</h2>
+            <h2 class="kfc-section-title">{{ $survey->status === \App\Enums\SurveyStatus::Finalized ? '別の試合を追加作成' : '試合を確定する' }}</h2>
+            @if ($survey->status === \App\Enums\SurveyStatus::Finalized)
+                <p class="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 px-4 py-3 text-sm leading-relaxed text-amber-950">
+                    すでに確定済みですが、<strong>別の試合を新規に作成</strong>できます（形式の取り違えの修正など）。既存の試合は<strong>自動では削除されません</strong>。不要な試合は試合一覧から削除してください。
+                </p>
+            @endif
             <p class="mt-3 text-sm leading-relaxed text-zinc-700">
                 採用する<strong>日程</strong>と<strong>フィールド</strong>を選び、<strong>出席者</strong>にチェックを入れてから確定してください。
                 日程を変えると、○ が付いている選手だけを自動でチェックします（いつでも手で変更可能）。
             </p>
-            <p class="mt-2 text-sm text-amber-800">個人戦の場合のみ、チェックした選手分の <code class="rounded bg-white px-1 text-xs">match_participants</code> と投稿URLを自動発行します。チーム戦の場合は試合作成後にチーム登録が必要です。</p>
+            <p class="mt-2 text-sm text-amber-800">個人戦: チェックした選手を <code class="rounded bg-white px-1 text-xs">match_participants</code>（出席・投稿URL付き）に登録します。チーム戦: 「自動チーム編成」で <code class="rounded bg-white px-1 text-xs">teams</code> / <code class="rounded bg-white px-1 text-xs">team_members</code> を生成するか、オフにして従来どおり後から手動登録できます。</p>
 
-            <form method="post" action="{{ route('admin.match-surveys.finalize', $survey) }}" class="mt-6 space-y-5" id="finalize-survey-form" onsubmit="return confirm('試合を作成し、アンケートを確定しますか？\nこの操作は取り消せません。');">
+            <form method="post" action="{{ route('admin.match-surveys.finalize', $survey) }}" class="mt-6 space-y-5" id="finalize-survey-form" onsubmit="return confirm({{ $survey->status === \App\Enums\SurveyStatus::Finalized ? "'新しい試合を追加作成しますか？\\n既存の試合は削除されません。'" : "'試合を作成し、アンケートを確定しますか？\\nこの操作は取り消せません。'" }});">
                 @csrf
                 <div>
                     <label class="kfc-label" for="match_survey_date_id">確定する日程</label>
@@ -158,9 +170,26 @@
                         </label>
                         <label class="inline-flex cursor-pointer items-center gap-2">
                             <input type="radio" name="match_type" value="team" class="text-emerald-600">
-                            チーム戦（後からチーム登録）
+                            チーム戦
                         </label>
                     </div>
+                </div>
+                <div id="auto-team-block" class="hidden rounded-xl border border-emerald-200/80 bg-emerald-50/40 p-4">
+                    <label class="flex cursor-pointer items-start gap-3 text-sm">
+                        <input
+                            type="checkbox"
+                            name="auto_form_teams"
+                            value="1"
+                            class="mt-1 rounded border-zinc-300 text-emerald-600 focus:ring-emerald-500/30"
+                            @checked(old('auto_form_teams'))
+                        >
+                        <span>
+                            <span class="font-semibold text-zinc-900">自動チーム編成する</span>
+                            <span class="mt-1 block text-xs leading-relaxed text-zinc-600">
+                                出席者をシーズン累計ポイント降順（未登録は0点・同点は名前昇順）に並べ、<strong>先頭＋末尾</strong>のペアでチームを作成します。奇数の最後の1人は1人チームです。各チームに投稿用 <code class="rounded bg-white px-0.5 text-[0.65rem]">entry_token</code> を発行します。作成後は試合の「チーム」画面で名前・メンバーを編集できます。
+                            </span>
+                        </span>
+                    </label>
                 </div>
                 <div>
                     <label class="kfc-label" for="match_title">試合タイトル</label>
@@ -183,15 +212,18 @@
                         @endforeach
                     </ul>
                 </div>
-                <button type="submit" class="kfc-btn-emerald">確定して試合を作成</button>
+                <button type="submit" class="kfc-btn-emerald">{{ $survey->status === \App\Enums\SurveyStatus::Finalized ? '追加で試合を作成' : '確定して試合を作成' }}</button>
             </form>
         </div>
 
         @push('scripts')
             <script>
                 (function () {
+                    const form = document.getElementById('finalize-survey-form');
                     const yesByDate = @json($playersWithYesForDate);
                     const sel = document.getElementById('match_survey_date_id');
+                    const autoBlock = document.getElementById('auto-team-block');
+
                     function syncChecks() {
                         if (!sel) return;
                         const id = sel.value;
@@ -200,12 +232,51 @@
                             cb.checked = yesSet.has(parseInt(cb.value, 10));
                         });
                     }
+
+                    function toggleAutoTeamBlock() {
+                        if (!form || !autoBlock) return;
+                        const team = form.querySelector('input[name="match_type"][value="team"]')?.checked;
+                        autoBlock.classList.toggle('hidden', !team);
+                    }
+
                     if (sel) {
                         sel.addEventListener('change', syncChecks);
-                        document.addEventListener('DOMContentLoaded', syncChecks);
                     }
+                    if (form) {
+                        form.querySelectorAll('input[name="match_type"]').forEach(function (r) {
+                            r.addEventListener('change', toggleAutoTeamBlock);
+                        });
+                    }
+                    document.addEventListener('DOMContentLoaded', function () {
+                        syncChecks();
+                        toggleAutoTeamBlock();
+                    });
                 })();
             </script>
         @endpush
     @endif
+
+    <div class="kfc-card mt-10 border-red-200/60 bg-red-50/20 ring-red-500/5">
+        <h2 class="kfc-section-title text-red-900">アンケートを削除</h2>
+        <p class="mt-3 text-sm leading-relaxed text-zinc-700">
+            候補日・回答・集計データがすべて削除されます。この操作は元に戻せません。
+        </p>
+        @if ($survey->createdMatch)
+            <p class="mt-2 text-sm text-amber-900">
+                このアンケートから作成した試合（直近に紐づいている「<strong>{{ $survey->createdMatch->title }}</strong>」ほか、追加作成した分も含む）は<strong>削除されません</strong>。試合を消す場合は<a href="{{ route('admin.matches.edit', $survey->createdMatch) }}" class="kfc-link">試合編集</a>または試合一覧から削除してください。
+            </p>
+        @endif
+        <form
+            method="post"
+            action="{{ route('admin.match-surveys.destroy', $survey) }}"
+            class="mt-5"
+            onsubmit="return confirm('このアンケートを完全に削除しますか？\n\n回答データはすべて失われます。');"
+        >
+            @csrf
+            @method('delete')
+            <button type="submit" class="rounded-xl border border-red-300 bg-white px-4 py-2.5 text-sm font-semibold text-red-800 shadow-sm transition hover:bg-red-50">
+                このアンケートを削除する
+            </button>
+        </form>
+    </div>
 @endsection

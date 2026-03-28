@@ -14,6 +14,8 @@ use App\Models\MatchSurveyDate;
 use App\Models\MatchSurveyField;
 use App\Models\Player;
 use App\Models\Season;
+use App\Models\Team;
+use App\Services\AutoTeamBuilderService;
 use App\Services\MatchResultSyncService;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +28,8 @@ use Illuminate\View\View;
 class MatchSurveyManageController extends Controller
 {
     public function __construct(
-        private MatchResultSyncService $matchResults
+        private MatchResultSyncService $matchResults,
+        private AutoTeamBuilderService $autoTeamBuilder
     ) {}
 
     public function index(): View
@@ -140,6 +143,15 @@ class MatchSurveyManageController extends Controller
         ));
     }
 
+    public function destroy(MatchSurvey $match_survey): RedirectResponse
+    {
+        $match_survey->delete();
+
+        return redirect()
+            ->route('admin.match-surveys.index')
+            ->with('status', 'アンケートを削除しました。');
+    }
+
     public function close(MatchSurvey $match_survey): RedirectResponse
     {
         $survey = $match_survey;
@@ -170,10 +182,6 @@ class MatchSurveyManageController extends Controller
     {
         $survey = $match_survey;
 
-        if ($survey->status === SurveyStatus::Finalized) {
-            return back()->withErrors(['survey' => 'すでに確定済みです。']);
-        }
-
         $validated = $request->validate([
             'match_survey_date_id' => [
                 'required',
@@ -190,6 +198,7 @@ class MatchSurveyManageController extends Controller
             'held_time' => ['required', 'date_format:H:i'],
             'player_ids' => ['required', 'array', 'min:1'],
             'player_ids.*' => ['integer', 'exists:players,id'],
+            'auto_form_teams' => ['sometimes', 'boolean'],
         ]);
 
         $dateRow = MatchSurveyDate::query()
@@ -206,8 +215,10 @@ class MatchSurveyManageController extends Controller
 
         $matchType = MatchType::from($validated['match_type']);
         $playerIds = array_values(array_unique(array_map('intval', $validated['player_ids'])));
+        $autoFormTeams = $matchType === MatchType::Team && $request->boolean('auto_form_teams');
+        $hadCreatedMatch = $survey->created_match_id !== null;
 
-        $match = DB::transaction(function () use ($survey, $fieldRow, $heldAt, $matchType, $validated, $playerIds): GameMatch {
+        $match = DB::transaction(function () use ($survey, $fieldRow, $heldAt, $matchType, $validated, $playerIds, $autoFormTeams): GameMatch {
             $match = GameMatch::query()->create([
                 'season_id' => $survey->season_id,
                 'match_type' => $matchType,
@@ -231,6 +242,21 @@ class MatchSurveyManageController extends Controller
                 }
             }
 
+            if ($matchType === MatchType::Team && $autoFormTeams) {
+                $players = Player::query()->whereIn('id', $playerIds)->get();
+                $sorted = $this->autoTeamBuilder->orderPlayersBySeasonStanding($players, (int) $survey->season_id);
+                $groups = $this->autoTeamBuilder->pairPlayersIntoTeams($sorted);
+
+                foreach ($groups as $index => $memberIds) {
+                    $team = Team::query()->create([
+                        'match_id' => $match->id,
+                        'name' => 'チーム '.($index + 1),
+                        'entry_token' => Str::random(32),
+                    ]);
+                    $team->players()->sync($memberIds);
+                }
+            }
+
             $survey->update([
                 'status' => SurveyStatus::Finalized,
                 'created_match_id' => $match->id,
@@ -241,9 +267,15 @@ class MatchSurveyManageController extends Controller
 
         $this->matchResults->syncMatch($match, true);
 
-        $message = $matchType === MatchType::Team
-            ? '試合を作成しました。チーム戦のため、試合編集からチームを登録してください。'
-            : '試合を作成し、出席者分の参加者・投稿URLを発行しました。';
+        $suffix = $hadCreatedMatch ? ' 以前に作成した試合は試合一覧にそのまま残っています。' : '';
+
+        if ($matchType === MatchType::Team && $autoFormTeams) {
+            $message = '試合を作成し、成績順に基づきチームを自動編成しました。編集画面からチーム名・メンバーを調整できます。'.$suffix;
+        } elseif ($matchType === MatchType::Team) {
+            $message = '試合を作成しました。チーム戦のため、試合編集からチームを登録してください。'.$suffix;
+        } else {
+            $message = '試合を作成し、出席者分の参加者・投稿URLを発行しました。'.$suffix;
+        }
 
         return redirect()
             ->route('admin.matches.edit', $match)
