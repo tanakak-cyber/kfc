@@ -38,6 +38,7 @@
             @include('partials.season_player_standings_table', [
                 'standings' => $standings,
                 'seasonCatchStats' => $seasonCatchStats,
+                'seasonParticipationStats' => $seasonParticipationStats,
             ])
         @endif
     </section>
@@ -59,7 +60,9 @@
                     @endphp
                     <p class="mt-3 text-sm text-zinc-700">
                         <span class="font-semibold text-zinc-800">上位:</span>
-                        @if ($topThree->isEmpty())
+                        @if ($m->isBeforeStartDatetime())
+                            <span class="text-zinc-600">開催前のため表示しません</span>
+                        @elseif ($topThree->isEmpty())
                             —
                         @elseif ($m->isTeamMatch())
                             {{ $topThree->map(fn ($r) => ($r->team?->name ?? '—').'（'.$r->rank.'位）')->implode('、') }}

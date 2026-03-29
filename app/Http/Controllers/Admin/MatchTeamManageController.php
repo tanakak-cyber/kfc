@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Team;
+use App\Models\TeamMember;
 use App\Services\MatchResultSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,6 +57,20 @@ class MatchTeamManageController extends Controller
         $memberIds = [(int) $data['player_a_id']];
         if ($data['player_b_id'] !== null) {
             $memberIds[] = (int) $data['player_b_id'];
+        }
+
+        $alreadyInMatch = TeamMember::query()
+            ->whereHas('team', fn ($q) => $q->where('match_id', $gameMatch->id))
+            ->pluck('player_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+
+        if (array_intersect($memberIds, $alreadyInMatch) !== []) {
+            return back()
+                ->withErrors([
+                    'player_a_id' => '選択した選手のうち、すでにこの試合の別チームに登録されている人がいます。同一試合では1チームのみ登録できます。',
+                ])
+                ->withInput();
         }
 
         $team = Team::query()->create([

@@ -5,10 +5,15 @@ namespace App\Http\Controllers;
 use App\Enums\CatchApprovalStatus;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
+use App\Services\MatchResultSyncService;
 use Illuminate\View\View;
 
 class PublicMatchController extends Controller
 {
+    public function __construct(
+        private MatchResultSyncService $matchResults
+    ) {}
+
     public function show(GameMatch $gameMatch): View
     {
         $gameMatch->load([
@@ -30,6 +35,13 @@ class PublicMatchController extends Controller
             ->groupBy('player_id')
             ->map(fn ($rows) => (int) $rows->sum('points'));
 
-        return view('matches.show', compact('gameMatch', 'catches', 'playerBonusTotals'));
+        $teamMatchPlayerBreakdown = $this->matchResults->teamMatchPlayerBreakdownRows($gameMatch, $playerBonusTotals);
+
+        return view('matches.show', compact(
+            'gameMatch',
+            'catches',
+            'playerBonusTotals',
+            'teamMatchPlayerBreakdown'
+        ));
     }
 }

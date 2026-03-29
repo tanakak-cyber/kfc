@@ -3,11 +3,15 @@
 namespace App\Services;
 
 use App\Models\Player;
-use App\Models\SeasonPlayerPoint;
+use App\Models\Season;
 use Illuminate\Support\Collection;
 
 class AutoTeamBuilderService
 {
+    public function __construct(
+        private MatchResultSyncService $matchResults
+    ) {}
+
     /**
      * シーズン内ポイント降順、同点は name 昇順で並べ替えたプレイヤーコレクションを返す。
      *
@@ -22,10 +26,14 @@ class AutoTeamBuilderService
 
         $ids = $players->pluck('id')->all();
 
-        $points = SeasonPlayerPoint::query()
-            ->where('season_id', $seasonId)
-            ->whereIn('player_id', $ids)
-            ->pluck('total_points', 'player_id');
+        $season = Season::query()->find($seasonId);
+        $allTotals = $season !== null
+            ? $this->matchResults->playerTotalsForSeason($season)
+            : [];
+        $points = [];
+        foreach ($ids as $id) {
+            $points[$id] = (int) ($allTotals[(int) $id] ?? 0);
+        }
 
         return $players
             ->sort(function (Player $a, Player $b) use ($points): int {

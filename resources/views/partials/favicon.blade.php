@@ -1,4 +1,4 @@
-{{-- サイトロゴと同一URLをファビコンに使用（ルート相対のまま） --}}
+{{-- サイトロゴと同一URLをファビコンに使用 --}}
 @php
     $path = parse_url($siteLogoUrl, PHP_URL_PATH) ?: $siteLogoUrl;
     $ext = strtolower(pathinfo($path, PATHINFO_EXTENSION));

@@ -7,6 +7,7 @@ use App\Support\PublicStorageUrl;
 use App\Support\SiteHomeTagline;
 use App\Support\SiteNoindex;
 use App\Support\SiteTeamName;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
@@ -25,6 +26,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (config('app.force_root_url')) {
+            URL::forceRootUrl(rtrim((string) config('app.url'), '/'));
+        }
+
         View::composer('*', function (\Illuminate\View\View $view): void {
             $siteTeamName = SiteTeamName::get();
             $view->with('siteTeamName', $siteTeamName);
@@ -38,7 +43,7 @@ class AppServiceProvider extends ServiceProvider
             );
             $view->with(
                 'siteLogoUrl',
-                PublicStorageUrl::fromDiskPath($branding?->logo_path) ?? '/images/logo-default.svg'
+                PublicStorageUrl::fromDiskPath($branding?->logo_path) ?? asset('images/logo-default.svg')
             );
             $view->with(
                 'siteHeroImageUrl',

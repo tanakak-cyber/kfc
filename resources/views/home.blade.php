@@ -68,6 +68,7 @@
             @include('partials.season_player_standings_table', [
                 'standings' => $seasonStandings,
                 'seasonCatchStats' => $seasonCatchStats,
+                'seasonParticipationStats' => $seasonParticipationStats,
             ])
         @endif
     </section>
@@ -82,13 +83,17 @@
                         <p class="mt-0.5 text-xs text-zinc-500">{{ $m->start_datetime->format('Y/m/d H:i') }} · {{ $m->field }}</p>
                     </div>
                     <div class="text-sm text-zinc-600">
-                        @php $top = $m->matchResults->sortBy('rank')->first(); @endphp
-                        @if ($top && $m->isTeamMatch() && $top->team)
-                            <span class="kfc-badge">首位: {{ $top->team->name }}（{{ $top->total_weight }} g）</span>
-                        @elseif ($top && $m->isIndividualMatch() && $top->player)
-                            <span class="kfc-badge">首位: {{ $top->player->displayLabel() }}（{{ $top->total_weight }} g）</span>
+                        @if ($m->isBeforeStartDatetime())
+                            <span class="kfc-badge-warn">開催前（結果は開催後に表示されます）</span>
                         @else
-                            <span class="kfc-badge-warn">順位未確定</span>
+                            @php $top = $m->matchResults->sortBy('rank')->first(); @endphp
+                            @if ($top && $m->isTeamMatch() && $top->team)
+                                <span class="kfc-badge">首位: {{ $top->team->name }}（{{ $top->total_weight }} g）</span>
+                            @elseif ($top && $m->isIndividualMatch() && $top->player)
+                                <span class="kfc-badge">首位: {{ $top->player->displayLabel() }}（{{ $top->total_weight }} g）</span>
+                            @else
+                                <span class="kfc-badge-warn">順位未確定</span>
+                            @endif
                         @endif
                     </div>
                 </li>

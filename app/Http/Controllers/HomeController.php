@@ -4,28 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\GameMatch;
 use App\Models\Season;
-use App\Models\SeasonPlayerPoint;
+use App\Services\MatchResultSyncService;
 use App\Support\SeasonCatchFeed;
 use App\Support\SeasonPlayerCatchStats;
+use App\Support\SeasonPlayerParticipationStats;
 use App\Support\SeasonPlayerStandings;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
+    public function __construct(
+        private MatchResultSyncService $matchResults
+    ) {}
+
     public function __invoke(): View
     {
         $currentSeason = Season::query()->where('is_current', true)->first();
 
         $seasonStandings = collect();
         $seasonCatchStats = collect();
+        $seasonParticipationStats = collect();
         $seasonCatchFeed = collect();
         if ($currentSeason) {
             $seasonCatchFeed = SeasonCatchFeed::approvedForSeason($currentSeason->id);
             $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($currentSeason->id);
-            $seasonStandings = SeasonPlayerPoint::query()
-                ->where('season_id', $currentSeason->id)
-                ->with('player')
-                ->get();
+            $seasonParticipationStats = SeasonPlayerParticipationStats::statsByPlayerId($currentSeason->id);
+            $seasonStandings = $this->matchResults->seasonPlayerStandingModels($currentSeason);
             $seasonStandings = SeasonPlayerStandings::orderByPointsCatchCountMaxWeight($seasonStandings, $seasonCatchStats);
             $seasonStandings = SeasonPlayerStandings::attachDisplayRanks($seasonStandings);
         }
@@ -46,6 +50,7 @@ class HomeController extends Controller
             'currentSeason',
             'seasonStandings',
             'seasonCatchStats',
+            'seasonParticipationStats',
             'seasonCatchFeed',
             'recentMatches',
             'pastSeasons'

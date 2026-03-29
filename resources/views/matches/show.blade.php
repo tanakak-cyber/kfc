@@ -73,6 +73,23 @@
 
     <section class="kfc-card mt-8">
         <h2 class="kfc-section-title">順位表（承認済み釣果・上位3本合計）</h2>
+        @if (! $gameMatch->is_finalized)
+            <div class="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
+                <p class="font-semibold text-amber-900">この試合は未確定です</p>
+                <p class="mt-1 leading-relaxed text-amber-950/90">
+                    トップページ・シーズン詳細の「個人順位」は<strong>確定済み試合だけ</strong>を集計しています。ここに表示されている順位・ポイントは、確定前でも再計算結果として表示されますが、シーズン合計にはまだ含まれません。
+                </p>
+            </div>
+        @else
+            <p class="mt-3 text-sm leading-relaxed text-zinc-600">
+                シーズンの個人順位は、同じルール（チーム戦はメンバー全員にチーム順位分＋個人の追加ポイント）で<strong>確定済み試合</strong>を合算した値です。
+            </p>
+        @endif
+        @if ($gameMatch->isTeamMatch())
+            <p class="mt-3 text-sm leading-relaxed text-zinc-600">
+                下の表の「ポイント」は<strong>チーム単位の順位ポイント</strong>です。各選手の「この試合での合計」は、その下の「選手別の付与」表で確認できます（個人戦と同様に順位分＋追加ポイント）。
+            </p>
+        @endif
         <div class="kfc-table-shell mt-6 overflow-x-auto">
             <table class="min-w-full text-left text-sm">
                 <thead class="kfc-thead">
@@ -123,6 +140,46 @@
                 </tbody>
             </table>
         </div>
+        @if ($gameMatch->isTeamMatch() && $teamMatchPlayerBreakdown->isNotEmpty())
+            <div class="mt-8">
+                <h3 class="text-base font-semibold text-zinc-900">選手別の付与（この試合）</h3>
+                <p class="mt-1 text-sm text-zinc-600">
+                    チーム順位ポイントはメンバー全員に同じ点数が付きます。追加ポイントがある選手は個人に上乗せされます。シーズン個人順位の集計ロジックと同じです。
+                </p>
+                <div class="kfc-table-shell mt-4 overflow-x-auto">
+                    <table class="min-w-full text-left text-sm">
+                        <thead class="kfc-thead">
+                            <tr>
+                                <th class="px-4 py-3">チーム</th>
+                                <th class="px-4 py-3">選手</th>
+                                <th class="px-4 py-3">順位分（チーム）</th>
+                                <th class="px-4 py-3">追加</th>
+                                <th class="px-4 py-3">この試合での合計</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($teamMatchPlayerBreakdown as $row)
+                                <tr class="kfc-trow">
+                                    <td class="px-4 py-3">{{ $row['team_name'] }}</td>
+                                    <td class="px-4 py-3">
+                                        <a href="{{ route('players.show', $row['player']) }}" class="kfc-link">{{ $row['player']->displayLabel() }}</a>
+                                    </td>
+                                    <td class="px-4 py-3 tabular-nums">{{ $row['rank_points'] }}</td>
+                                    <td class="px-4 py-3 tabular-nums">
+                                        @if ($row['bonus'] > 0)
+                                            +{{ $row['bonus'] }}
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td class="px-4 py-3 tabular-nums font-medium">{{ $row['match_total'] }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
         @if ($gameMatch->matchPlayerBonusPoints->isNotEmpty())
             <div class="mt-6 rounded-xl border border-emerald-200/70 bg-emerald-50/40 px-4 py-3 text-sm text-zinc-800">
                 <p class="font-semibold text-emerald-900">選手への追加ポイント</p>

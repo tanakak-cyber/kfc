@@ -5,7 +5,8 @@ namespace App\Support;
 final class PublicStorageUrl
 {
     /**
-     * APP_URL に依存しないルート相対URL（127.0.0.1 / localhost の食い違いで画像が壊れるのを防ぐ）
+     * public/storage 配下のファイル用URL。
+     * asset() を使い、サブディレクトリ配下（例: /kfc/）・非標準ポートでも正しく解決する。
      */
     public static function fromDiskPath(?string $path): ?string
     {
@@ -15,6 +16,6 @@ final class PublicStorageUrl
 
         $normalized = ltrim(str_replace('\\', '/', $path), '/');
 
-        return '/storage/'.$normalized;
+        return asset('storage/'.$normalized);
     }
 }

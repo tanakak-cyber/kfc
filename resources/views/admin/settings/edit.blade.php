@@ -26,7 +26,7 @@
             <span class="kfc-label">現在のロゴ</span>
             <div class="mt-3 flex items-center gap-4">
                 <img
-                    src="{{ $siteSetting->logoPublicUrl() ?? '/images/logo-default.svg' }}"
+                    src="{{ $siteSetting->logoPublicUrl() ?? asset('images/logo-default.svg') }}"
                     alt=""
                     class="h-14 w-auto max-w-[200px] rounded-lg border border-zinc-200 bg-white object-contain p-1"
                 >
