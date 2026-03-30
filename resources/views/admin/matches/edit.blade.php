@@ -139,7 +139,7 @@
     <div class="kfc-card mt-8 border-amber-200/60 bg-amber-50/30 ring-amber-500/5">
         <h2 class="kfc-section-title">試合の順位・ポイントを再計算</h2>
         <p class="mt-3 text-sm leading-relaxed text-zinc-700">
-            この試合の <code class="rounded-md bg-white px-1.5 py-0.5 text-xs font-mono ring-1 ring-zinc-200">match_results</code> を、いまのルール（承認済み釣果0件のチームは<strong>1ポイント</strong>など）で<strong>上書き</strong>し、そのあとシーズン個人順位も更新します。
+            この試合の <code class="rounded-md bg-white px-1.5 py-0.5 text-xs font-mono ring-1 ring-zinc-200">match_results</code> を、いまの<strong>順位算出設定（重さ／長さ・本数）</strong>とルール（承認済み釣果0件は<strong>1ポイント</strong>など）で<strong>上書き</strong>し、そのあとシーズン個人順位も更新します。
         </p>
         <p class="mt-2 text-sm text-zinc-600">確定後にルールが変わったときや、DBに古いポイントが残っているときに押してください。</p>
         <form method="post" action="{{ route('admin.matches.resync-match-results-and-season', $gameMatch) }}" class="mt-5" onsubmit="return confirm('この試合の match_results を再計算し、シーズン個人順位も更新しますか？');">

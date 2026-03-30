@@ -16,6 +16,10 @@
             <input type="text" name="display_name" value="{{ old('display_name', $player->display_name) }}" class="kfc-input mt-2">
         </div>
         <div>
+            <label class="kfc-label">メールアドレス（任意・釣果投稿URLの案内用）</label>
+            <input type="email" name="email" value="{{ old('email', $player->email) }}" class="kfc-input mt-2" autocomplete="email" placeholder="未登録の場合はメール送信できません">
+        </div>
+        <div>
             <label class="kfc-label">アイコン画像</label>
             @if ($player->icon)
                 <p class="mt-2 text-xs text-zinc-500">現在: {{ $player->icon }}</p>

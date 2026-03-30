@@ -11,6 +11,7 @@ class Player extends Model
     protected $fillable = [
         'name',
         'display_name',
+        'email',
         'icon',
     ];
 

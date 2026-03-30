@@ -72,7 +72,7 @@
     @endif
 
     <section class="kfc-card mt-8">
-        <h2 class="kfc-section-title">順位表（承認済み釣果・上位3本合計）</h2>
+        <h2 class="kfc-section-title">{{ $gameMatch->catchScoringStandingsHeading() }}</h2>
         @if (! $gameMatch->is_finalized)
             <div class="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
                 <p class="font-semibold text-amber-900">この試合は未確定です</p>
@@ -90,35 +90,35 @@
                 下の表の「ポイント」は<strong>チーム単位の順位ポイント</strong>です。各選手の「この試合での合計」は、その下の「選手別の付与」表で確認できます（個人戦と同様に順位分＋追加ポイント）。
             </p>
         @endif
-        <div class="kfc-table-shell mt-6 overflow-x-auto">
-            <table class="min-w-full text-left text-sm">
+        <div class="kfc-table-shell -mx-6 mt-6 overflow-x-auto sm:mx-0">
+            <table class="w-full min-w-[52rem] text-left text-sm lg:min-w-full">
                 <thead class="kfc-thead">
                     <tr>
-                        <th class="px-4 py-3">順位</th>
+                        <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">順位</th>
                         @if ($gameMatch->isTeamMatch())
-                            <th class="px-4 py-3">チーム</th>
+                            <th class="min-w-[12rem] whitespace-nowrap px-3 py-2.5 sm:min-w-[14rem] sm:px-4 sm:py-3">チーム</th>
                         @else
-                            <th class="px-4 py-3">プレイヤー</th>
+                            <th class="min-w-[9rem] whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">プレイヤー</th>
                         @endif
-                        <th class="px-4 py-3">合計（g）</th>
-                        <th class="px-4 py-3">ビッグ（g）</th>
-                        <th class="px-4 py-3">ポイント</th>
+                        <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">{{ $gameMatch->catchScoringTotalColumnLabel() }}</th>
+                        <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">{{ $gameMatch->catchScoringBigColumnLabel() }}</th>
+                        <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">ポイント</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse ($gameMatch->matchResults->sortBy('rank') as $r)
                         <tr class="kfc-trow">
-                            <td class="px-4 py-3 font-semibold">{{ $r->rank }}</td>
-                            <td class="px-4 py-3">
+                            <td class="whitespace-nowrap px-3 py-2.5 font-semibold sm:px-4 sm:py-3">{{ $r->rank }}</td>
+                            <td class="min-w-[12rem] px-3 py-2.5 sm:min-w-[14rem] sm:px-4 sm:py-3">
                                 @if ($gameMatch->isTeamMatch())
                                     {{ $r->team?->name ?? '—' }}
                                 @else
                                     {{ $r->player?->displayLabel() ?? '—' }}
                                 @endif
                             </td>
-                            <td class="px-4 py-3 tabular-nums">{{ $r->total_weight }}</td>
-                            <td class="px-4 py-3 tabular-nums">{{ $r->big_fish_weight }}</td>
-                            <td class="px-4 py-3 tabular-nums font-medium">
+                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $r->total_weight }}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $r->big_fish_weight }}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium sm:px-4 sm:py-3">
                                 @if ($gameMatch->isIndividualMatch())
                                     @php $extra = (int) ($playerBonusTotals->get($r->player_id) ?? 0); @endphp
                                     @if ($extra > 0)
@@ -134,7 +134,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-4 py-6 kfc-muted">順位データがありません。</td>
+                            <td colspan="5" class="px-3 py-6 kfc-muted sm:px-4">順位データがありません。</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -146,33 +146,33 @@
                 <p class="mt-1 text-sm text-zinc-600">
                     チーム順位ポイントはメンバー全員に同じ点数が付きます。追加ポイントがある選手は個人に上乗せされます。シーズン個人順位の集計ロジックと同じです。
                 </p>
-                <div class="kfc-table-shell mt-4 overflow-x-auto">
-                    <table class="min-w-full text-left text-sm">
+                <div class="kfc-table-shell -mx-6 mt-4 overflow-x-auto sm:mx-0">
+                    <table class="w-full min-w-[56rem] text-left text-sm lg:min-w-full">
                         <thead class="kfc-thead">
                             <tr>
-                                <th class="px-4 py-3">チーム</th>
-                                <th class="px-4 py-3">選手</th>
-                                <th class="px-4 py-3">順位分（チーム）</th>
-                                <th class="px-4 py-3">追加</th>
-                                <th class="px-4 py-3">この試合での合計</th>
+                                <th class="min-w-[12rem] whitespace-nowrap px-3 py-2.5 sm:min-w-[14rem] sm:px-4 sm:py-3">チーム</th>
+                                <th class="min-w-[9rem] whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">選手</th>
+                                <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">順位分（チーム）</th>
+                                <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">追加</th>
+                                <th class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">この試合での合計</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($teamMatchPlayerBreakdown as $row)
                                 <tr class="kfc-trow">
-                                    <td class="px-4 py-3">{{ $row['team_name'] }}</td>
-                                    <td class="px-4 py-3">
+                                    <td class="min-w-[12rem] px-3 py-2.5 sm:min-w-[14rem] sm:px-4 sm:py-3">{{ $row['team_name'] }}</td>
+                                    <td class="min-w-[9rem] whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3">
                                         <a href="{{ route('players.show', $row['player']) }}" class="kfc-link">{{ $row['player']->displayLabel() }}</a>
                                     </td>
-                                    <td class="px-4 py-3 tabular-nums">{{ $row['rank_points'] }}</td>
-                                    <td class="px-4 py-3 tabular-nums">
+                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $row['rank_points'] }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">
                                         @if ($row['bonus'] > 0)
                                             +{{ $row['bonus'] }}
                                         @else
                                             —
                                         @endif
                                     </td>
-                                    <td class="px-4 py-3 tabular-nums font-medium">{{ $row['match_total'] }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium sm:px-4 sm:py-3">{{ $row['match_total'] }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

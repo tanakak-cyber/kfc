@@ -1,6 +1,7 @@
 {{--
   @var \App\Models\GameMatch $gameMatch
   @var string $entryUrl 釣果投稿の絶対URL
+  @var string|null $entryMailAction POST 先（未指定ならメールボタンは出さない）
 --}}
 @php
     $shareFirstLine = $gameMatch->start_datetime
@@ -9,7 +10,7 @@
     $matchPublicUrl = route('matches.show', $gameMatch, absolute: true);
 @endphp
 
-<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1">
+<div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-2">
     <button
         type="button"
         class="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100"
@@ -20,6 +21,17 @@
     >
         共有文をコピー
     </button>
+    @isset($entryMailAction)
+        <form method="post" action="{{ $entryMailAction }}" class="inline" onsubmit="return confirm('釣果投稿URLをメールで送信しますか？');">
+            @csrf
+            <button
+                type="submit"
+                class="inline-flex items-center rounded-lg border border-sky-200 bg-sky-50 px-3 py-1.5 text-xs font-semibold text-sky-900 shadow-sm transition hover:bg-sky-100"
+            >
+                メール送信
+            </button>
+        </form>
+    @endisset
     <span class="kfc-entry-share-copy-feedback hidden text-xs font-medium text-emerald-800" aria-live="polite"></span>
 </div>
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CatchApprovalStatus;
+use App\Enums\CatchScoringBasis;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
 use App\Models\MatchParticipant;
@@ -34,14 +35,15 @@ class EntryController extends Controller
 
         if ($team !== null) {
             $gameMatch = $team->gameMatch;
-            $top3 = $this->top3ForTeam($team, false);
+            $topCatches = $this->topScoringCatchesForTeam($team, false);
 
             return view('entry.show', [
                 'entryMode' => 'team',
                 'team' => $team,
                 'participant' => null,
                 'gameMatch' => $gameMatch,
-                'top3' => $top3,
+                'topCatches' => $topCatches,
+                'entryTopLimit' => $this->entryCatchScoringLimit($gameMatch),
             ]);
         }
 
@@ -51,14 +53,15 @@ class EntryController extends Controller
             ->firstOrFail();
 
         $gameMatch = $participant->gameMatch;
-        $top3 = $this->top3ForPlayer($gameMatch, $participant->player_id, false);
+        $topCatches = $this->topScoringCatchesForPlayer($gameMatch, $participant->player_id, false);
 
         return view('entry.show', [
             'entryMode' => 'individual',
             'team' => null,
             'participant' => $participant,
             'gameMatch' => $gameMatch,
-            'top3' => $top3,
+            'topCatches' => $topCatches,
+            'entryTopLimit' => $this->entryCatchScoringLimit($gameMatch),
         ]);
     }
 
@@ -221,11 +224,58 @@ class EntryController extends Controller
     }
 
     /**
+     * GameMatch にヘルパーが無い古い本番でも動くよう、ここで解決（あればモデルに委譲）。
+     */
+    private function resolveEntryCatchScoringBasis(GameMatch $match): CatchScoringBasis
+    {
+        if (method_exists($match, 'resolvedCatchScoringBasis')) {
+            return $match->resolvedCatchScoringBasis();
+        }
+
+        $b = $match->getAttribute('catch_scoring_basis');
+
+        if ($b instanceof CatchScoringBasis) {
+            return $b;
+        }
+
+        if (is_string($b) && $b !== '') {
+            return CatchScoringBasis::tryFrom($b) ?? CatchScoringBasis::Weight;
+        }
+
+        return CatchScoringBasis::Weight;
+    }
+
+    private function entryCatchScoringLimit(GameMatch $match): int
+    {
+        if (method_exists($match, 'effectiveCatchScoringLimit')) {
+            return $match->effectiveCatchScoringLimit();
+        }
+
+        $n = (int) $match->getAttribute('catch_scoring_limit');
+
+        if ($n < 1 || $n > 30) {
+            return 3;
+        }
+
+        return $n;
+    }
+
+    /**
+     * 試合の順位設定（基準・本数）に合わせた上位釣果（未承認含む／承認のみは引数で切替）。
+     *
      * @return list<array{weight_g: string, length_cm: string}>
      */
-    private function top3ForTeam(Team $team, bool $approvedOnly): array
+    private function topScoringCatchesForTeam(Team $team, bool $approvedOnly): array
     {
-        $query = $team->catches()->orderByDesc('weight_g');
+        $match = $team->gameMatch;
+        $limit = $this->entryCatchScoringLimit($match);
+
+        $query = $team->catches();
+        if ($this->resolveEntryCatchScoringBasis($match) === CatchScoringBasis::Length) {
+            $query->orderByRaw('COALESCE(length_cm, 0) DESC');
+        } else {
+            $query->orderByDesc('weight_g');
+        }
 
         if ($approvedOnly) {
             $query->where('approval_status', CatchApprovalStatus::Approved);
@@ -236,7 +286,7 @@ class EntryController extends Controller
             ]);
         }
 
-        return $query->limit(3)
+        return $query->limit($limit)
             ->get(['weight_g', 'length_cm'])
             ->map(fn (FishCatch $c) => [
                 'weight_g' => (string) $c->weight_g,
@@ -248,12 +298,18 @@ class EntryController extends Controller
     /**
      * @return list<array{weight_g: string, length_cm: string}>
      */
-    private function top3ForPlayer(GameMatch $match, int $playerId, bool $approvedOnly): array
+    private function topScoringCatchesForPlayer(GameMatch $match, int $playerId, bool $approvedOnly): array
     {
+        $limit = $this->entryCatchScoringLimit($match);
+
         $query = FishCatch::query()
             ->where('match_id', $match->id)
-            ->where('player_id', $playerId)
-            ->orderByDesc('weight_g');
+            ->where('player_id', $playerId);
+        if ($this->resolveEntryCatchScoringBasis($match) === CatchScoringBasis::Length) {
+            $query->orderByRaw('COALESCE(length_cm, 0) DESC');
+        } else {
+            $query->orderByDesc('weight_g');
+        }
 
         if ($approvedOnly) {
             $query->where('approval_status', CatchApprovalStatus::Approved);
@@ -264,7 +320,7 @@ class EntryController extends Controller
             ]);
         }
 
-        return $query->limit(3)
+        return $query->limit($limit)
             ->get(['weight_g', 'length_cm'])
             ->map(fn (FishCatch $c) => [
                 'weight_g' => (string) $c->weight_g,

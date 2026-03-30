@@ -19,13 +19,13 @@
     <label class="kfc-label">シーズン</label>
     <select name="season_id" class="kfc-select mt-2" required>
         @foreach ($seasons as $s)
-            <option value="{{ $s->id }}" @selected(old('season_id', $gameMatch->season_id ?? $selectedSeasonId) == $s->id)>{{ $s->name }}</option>
+            <option value="{{ $s->id }}" @selected(old('season_id', $gameMatch?->season_id ?? $selectedSeasonId) == $s->id)>{{ $s->name }}</option>
         @endforeach
     </select>
 </div>
 <div>
     <label class="kfc-label">試合名</label>
-    <input type="text" name="title" value="{{ old('title', $gameMatch->title ?? '') }}" required class="kfc-input mt-2">
+    <input type="text" name="title" value="{{ old('title', $gameMatch?->title ?? '') }}" required class="kfc-input mt-2">
 </div>
 <div>
     <label class="kfc-label">開始日時</label>
@@ -39,13 +39,40 @@
 </div>
 <div>
     <label class="kfc-label">フィールド</label>
-    <input type="text" name="field" value="{{ old('field', $gameMatch->field ?? '') }}" required class="kfc-input mt-2">
+    <input type="text" name="field" value="{{ old('field', $gameMatch?->field ?? '') }}" required class="kfc-input mt-2">
 </div>
 <div>
     <label class="kfc-label">出艇店舗</label>
-    <input type="text" name="launch_shop" value="{{ old('launch_shop', $gameMatch->launch_shop ?? '') }}" class="kfc-input mt-2">
+    <input type="text" name="launch_shop" value="{{ old('launch_shop', $gameMatch?->launch_shop ?? '') }}" class="kfc-input mt-2">
 </div>
 <div>
     <label class="kfc-label">ルール</label>
-    <textarea name="rules" rows="4" class="kfc-input mt-2">{{ old('rules', $gameMatch->rules ?? '') }}</textarea>
+    <textarea name="rules" rows="4" class="kfc-input mt-2">{{ old('rules', $gameMatch?->rules ?? '') }}</textarea>
+</div>
+<div>
+    <label class="kfc-label">順位の算出（基準）</label>
+    <select name="catch_scoring_basis" class="kfc-select mt-2" required>
+        @foreach (\App\Enums\CatchScoringBasis::cases() as $basis)
+            <option
+                value="{{ $basis->value }}"
+                @selected(old('catch_scoring_basis', $gameMatch ? $gameMatch->resolvedCatchScoringBasis()->value : 'weight') === $basis->value)
+            >{{ $basis->label() }}</option>
+        @endforeach
+    </select>
+    <p class="mt-1 text-xs text-zinc-500">各チーム／選手の釣果のうち、この基準で大きい順に並べ、下の「本数」だけを合計して順位を付けます。</p>
+</div>
+<div>
+    <label class="kfc-label" for="catch_scoring_limit">順位に使う本数（リミット）</label>
+    <input
+        type="number"
+        id="catch_scoring_limit"
+        name="catch_scoring_limit"
+        min="{{ \App\Models\GameMatch::CATCH_SCORING_LIMIT_MIN }}"
+        max="{{ \App\Models\GameMatch::CATCH_SCORING_LIMIT_MAX }}"
+        step="1"
+        value="{{ old('catch_scoring_limit', $gameMatch ? $gameMatch->effectiveCatchScoringLimit() : 3) }}"
+        required
+        class="kfc-input mt-2 w-32 tabular-nums"
+    >
+    <p class="mt-1 text-xs text-zinc-500">{{ \App\Models\GameMatch::CATCH_SCORING_LIMIT_MIN }}〜{{ \App\Models\GameMatch::CATCH_SCORING_LIMIT_MAX }}本。大きい順にこの本数だけ合計します。</p>
 </div>

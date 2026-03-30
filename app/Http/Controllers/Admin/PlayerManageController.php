@@ -25,6 +25,9 @@ class PlayerManageController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $request->merge([
+            'email' => $request->filled('email') ? $request->input('email') : null,
+        ]);
         $data = $this->validated($request);
         if ($request->hasFile('icon')) {
             $data['icon'] = $request->file('icon')->store('player-icons', 'public');
@@ -41,6 +44,9 @@ class PlayerManageController extends Controller
 
     public function update(Request $request, Player $player): RedirectResponse
     {
+        $request->merge([
+            'email' => $request->filled('email') ? $request->input('email') : null,
+        ]);
         $data = $this->validated($request);
         if ($request->hasFile('icon')) {
             if ($player->icon) {
@@ -73,6 +79,7 @@ class PlayerManageController extends Controller
         return $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'display_name' => ['nullable', 'string', 'max:255'],
+            'email' => ['nullable', 'email', 'max:255'],
             'icon' => ['nullable', 'image', 'max:2048'],
         ]);
     }

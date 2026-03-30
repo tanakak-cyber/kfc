@@ -15,6 +15,10 @@
             <input type="text" name="display_name" value="{{ old('display_name') }}" class="kfc-input mt-2" placeholder="未入力時は名前を表示">
         </div>
         <div>
+            <label class="kfc-label">メールアドレス（任意・釣果投稿URLの案内用）</label>
+            <input type="email" name="email" value="{{ old('email') }}" class="kfc-input mt-2" autocomplete="email" placeholder="未登録の場合はメール送信できません">
+        </div>
+        <div>
             <label class="kfc-label">アイコン画像</label>
             <input type="file" name="icon" accept="image/*" class="mt-2 w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-emerald-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-emerald-800 hover:file:bg-emerald-100">
         </div>

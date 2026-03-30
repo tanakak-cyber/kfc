@@ -10,6 +10,23 @@
         <a href="{{ route('admin.matches.edit', $gameMatch) }}" class="kfc-link">試合編集に戻る</a>
     </p>
 
+    @include('admin.partials.mail_transport_notice')
+
+    @php
+        $canBulkEntryMail = $gameMatch->matchParticipants
+            ->filter(fn ($p) => $p->is_present)
+            ->contains(fn ($p) => filled($p->player->email));
+    @endphp
+    @if ($canBulkEntryMail)
+        <form method="post" action="{{ route('admin.matches.entry-mail.all', $gameMatch) }}" class="mt-4" onsubmit="return confirm('出席かつメール登録済みの参加者すべてに釣果投稿URLを送信します。よろしいですか？');">
+            @csrf
+            <button type="submit" class="inline-flex items-center rounded-lg border border-sky-300 bg-sky-50 px-4 py-2 text-sm font-semibold text-sky-900 shadow-sm transition hover:bg-sky-100">
+                参加者全員にメールを送信
+            </button>
+            <p class="mt-2 text-xs text-zinc-500">出席の参加者で、選手にメールアドレスが登録されている方のみ送信されます。</p>
+        </form>
+    @endif
+
     <section class="kfc-card mt-8">
         <h2 class="kfc-section-title">登録参加者・投稿URL</h2>
         <ul class="mt-6 space-y-4 text-sm">
@@ -31,6 +48,9 @@
                         @include('admin.partials.entry_share_copy_button', [
                             'gameMatch' => $gameMatch,
                             'entryUrl' => url('/entry/'.$participant->entry_token),
+                            'entryMailAction' => ($participant->is_present && filled($participant->player->email))
+                                ? route('admin.matches.entry-mail.participant', [$gameMatch, $participant])
+                                : null,
                         ])
                     @endif
                     @if (! $gameMatch->is_finalized)

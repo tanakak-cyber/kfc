@@ -15,12 +15,12 @@
     @enderror
 
     <section class="kfc-card mt-8">
-        <h2 class="kfc-section-title">TOP3（未承認含む）</h2>
-        @if (empty($top3))
+        <h2 class="kfc-section-title">TOP{{ $entryTopLimit }}（未承認含む）</h2>
+        @if (empty($topCatches))
             <p class="kfc-muted mt-3">まだ投稿がありません。</p>
         @else
             <ol class="mt-4 list-decimal space-y-2 pl-5 text-sm text-zinc-800">
-                @foreach ($top3 as $row)
+                @foreach ($topCatches as $row)
                     <li><span class="tabular-nums font-medium">{{ $row['weight_g'] }}</span> g / <span class="tabular-nums">{{ $row['length_cm'] }}</span> cm</li>
                 @endforeach
             </ol>

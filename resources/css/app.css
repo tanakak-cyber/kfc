@@ -130,4 +130,25 @@
     .kfc-hero-over-image-body {
         text-shadow: 0 1px 3px rgba(0, 0, 0, 1), 0 2px 14px rgba(0, 0, 0, 0.88);
     }
+
+    /*
+     * 管理レイアウトのドロワー: max-md で既定は画面外。
+     * Tailwind の translate ユーティリティが本番バンドルに含まれない場合でも開きっぱなしにならないよう ID で固定。
+     */
+    @media (max-width: 767.98px) {
+        #kfc-admin-sidebar {
+            transform: translateX(-100%);
+            transition: transform 200ms ease-out;
+        }
+
+        #kfc-admin-sidebar.kfc-admin-sidebar--open {
+            transform: translateX(0);
+        }
+    }
+
+    @media (min-width: 768px) {
+        #kfc-admin-sidebar {
+            transform: none;
+        }
+    }
 }

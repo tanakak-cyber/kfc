@@ -32,7 +32,7 @@ class MatchResultSyncService
     private function syncTeamMatch(GameMatch $match, bool $approvedOnly): void
     {
         $teams = $match->teams()->get();
-        $rows = $this->ranking->rankTeams($teams, $approvedOnly);
+        $rows = $this->ranking->rankTeams($match, $teams, $approvedOnly);
 
         DB::transaction(function () use ($match, $rows): void {
             MatchResult::query()->where('match_id', $match->id)->delete();
@@ -162,7 +162,7 @@ class MatchResultSyncService
     }
 
     /**
-     * @param  Collection<int, MatchResult>  $matchTeamRows 同一 match_id のチーム行のみ
+     * @param  Collection<int, MatchResult>  $matchTeamRows  同一 match_id のチーム行のみ
      * @return array<int, int>
      */
     private function aggregateTeamMatchRowsToPlayerPoints(Collection $matchTeamRows): array

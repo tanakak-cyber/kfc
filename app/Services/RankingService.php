@@ -3,40 +3,33 @@
 namespace App\Services;
 
 use App\Enums\CatchApprovalStatus;
+use App\Enums\CatchScoringBasis;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
 use App\Models\Player;
 use App\Models\Team;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class RankingService
 {
     /**
-     * 上位3本の合計・最大をグラム単位で返す（match_results と同じ意味）。
+     * 上位 N 本の合計・最大を返す。DB の match_results.total_weight / big_fish_weight に格納する値（
+     * 重さ試合なら g、長さ試合なら cm。カラム名は歴史的経緯で weight のまま）。
      *
      * @return array{total_weight: float, big_fish_weight: float}
      */
-    public function teamScore(Team $team, bool $approvedOnly): array
+    public function teamScore(Team $team, GameMatch $match, bool $approvedOnly): array
     {
-        $query = $team->catches()->orderByDesc('weight_g');
+        /** @var Builder<FishCatch> $query */
+        $query = $team->catches()->getQuery();
+        $this->applyApprovalScope($query, $approvedOnly);
 
-        if ($approvedOnly) {
-            $query->where('approval_status', CatchApprovalStatus::Approved);
-        } else {
-            $query->whereIn('approval_status', [
-                CatchApprovalStatus::Pending,
-                CatchApprovalStatus::Approved,
-            ]);
-        }
-
-        $weights = $query->limit(3)->pluck('weight_g')->map(fn ($w) => (float) $w);
-        $total = round($weights->sum(), 3);
-        $bigFish = $weights->isEmpty() ? 0.0 : round((float) $weights->max(), 3);
-
-        return [
-            'total_weight' => $total,
-            'big_fish_weight' => $bigFish,
-        ];
+        return $this->scoreFromCatchesQuery(
+            $query,
+            $match->resolvedCatchScoringBasis(),
+            $match->effectiveCatchScoringLimit()
+        );
     }
 
     /**
@@ -46,35 +39,23 @@ class RankingService
     {
         $query = FishCatch::query()
             ->where('match_id', $match->id)
-            ->where('player_id', $player->id)
-            ->orderByDesc('weight_g');
+            ->where('player_id', $player->id);
+        $this->applyApprovalScope($query, $approvedOnly);
 
-        if ($approvedOnly) {
-            $query->where('approval_status', CatchApprovalStatus::Approved);
-        } else {
-            $query->whereIn('approval_status', [
-                CatchApprovalStatus::Pending,
-                CatchApprovalStatus::Approved,
-            ]);
-        }
-
-        $weights = $query->limit(3)->pluck('weight_g')->map(fn ($w) => (float) $w);
-        $total = round($weights->sum(), 3);
-        $bigFish = $weights->isEmpty() ? 0.0 : round((float) $weights->max(), 3);
-
-        return [
-            'total_weight' => $total,
-            'big_fish_weight' => $bigFish,
-        ];
+        return $this->scoreFromCatchesQuery(
+            $query,
+            $match->resolvedCatchScoringBasis(),
+            $match->effectiveCatchScoringLimit()
+        );
     }
 
     /**
      * @return list<array{team_id: int, total_weight: float, big_fish_weight: float, rank: int, points: int}>
      */
-    public function rankTeams(Collection $teams, bool $approvedOnly): array
+    public function rankTeams(GameMatch $match, Collection $teams, bool $approvedOnly): array
     {
-        $rows = $teams->map(function (Team $team) use ($approvedOnly) {
-            $score = $this->teamScore($team, $approvedOnly);
+        $rows = $teams->map(function (Team $team) use ($match, $approvedOnly) {
+            $score = $this->teamScore($team, $match, $approvedOnly);
             $approvedCount = $team->catches()
                 ->where('approval_status', CatchApprovalStatus::Approved)
                 ->count();
@@ -112,6 +93,44 @@ class RankingService
         })->values()->all();
 
         return $this->assignRanksAndPointsForPlayers($rows, $approvedOnly);
+    }
+
+    /**
+     * @param  Builder<FishCatch>  $query
+     * @return array{total_weight: float, big_fish_weight: float}
+     */
+    private function scoreFromCatchesQuery(Builder $query, CatchScoringBasis $basis, int $limit): array
+    {
+        if ($basis === CatchScoringBasis::Length) {
+            $query->orderByRaw('COALESCE(length_cm, 0) DESC');
+            $values = $query->limit($limit)->pluck('length_cm')->map(fn ($v) => (float) ($v ?? 0));
+        } else {
+            $query->orderByDesc('weight_g');
+            $values = $query->limit($limit)->pluck('weight_g')->map(fn ($w) => (float) $w);
+        }
+
+        $total = round($values->sum(), 3);
+        $bigFish = $values->isEmpty() ? 0.0 : round((float) $values->max(), 3);
+
+        return [
+            'total_weight' => $total,
+            'big_fish_weight' => $bigFish,
+        ];
+    }
+
+    /**
+     * @param  Builder<FishCatch>  $query
+     */
+    private function applyApprovalScope(Builder $query, bool $approvedOnly): void
+    {
+        if ($approvedOnly) {
+            $query->where('approval_status', CatchApprovalStatus::Approved);
+        } else {
+            $query->whereIn('approval_status', [
+                CatchApprovalStatus::Pending,
+                CatchApprovalStatus::Approved,
+            ]);
+        }
     }
 
     /**

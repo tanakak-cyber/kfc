@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\CatchApprovalStatus;
+use App\Enums\CatchScoringBasis;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
 use App\Services\MatchResultSyncService;
@@ -24,12 +25,18 @@ class PublicMatchController extends Controller
             'matchPlayerBonusPoints.player',
         ]);
 
-        $catches = FishCatch::query()
+        $catchesQuery = FishCatch::query()
             ->where('match_id', $gameMatch->id)
             ->where('approval_status', CatchApprovalStatus::Approved)
-            ->with(['player', 'images', 'team'])
-            ->orderByDesc('weight_g')
-            ->get();
+            ->with(['player', 'images', 'team']);
+
+        if ($gameMatch->resolvedCatchScoringBasis() === CatchScoringBasis::Length) {
+            $catchesQuery->orderByRaw('COALESCE(length_cm, 0) DESC');
+        } else {
+            $catchesQuery->orderByDesc('weight_g');
+        }
+
+        $catches = $catchesQuery->get();
 
         $playerBonusTotals = $gameMatch->matchPlayerBonusPoints
             ->groupBy('player_id')

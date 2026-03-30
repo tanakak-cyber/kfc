@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\Auth\LoginController;
 use App\Http\Controllers\Admin\CatchModerationController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GameMatchManageController;
+use App\Http\Controllers\Admin\MatchEntryMailController;
 use App\Http\Controllers\Admin\MatchFishCatchController;
 use App\Http\Controllers\Admin\MatchParticipantManageController;
 use App\Http\Controllers\Admin\MatchSurveyManageController;
@@ -95,6 +96,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         ->name('matches.teams.store');
     Route::delete('matches/{gameMatch}/teams/{team}', [MatchTeamManageController::class, 'destroy'])
         ->name('matches.teams.destroy');
+    Route::post('matches/{gameMatch}/entry-mail/all', [MatchEntryMailController::class, 'sendAll'])
+        ->name('matches.entry-mail.all');
+    Route::post('matches/{gameMatch}/entry-mail/teams/{team}', [MatchEntryMailController::class, 'sendTeam'])
+        ->name('matches.entry-mail.team');
 
     Route::get('matches/{gameMatch}/participants', [MatchParticipantManageController::class, 'index'])
         ->name('matches.participants.index');
@@ -104,6 +109,8 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         ->name('matches.participants.presence');
     Route::delete('matches/{gameMatch}/participants/{participant}', [MatchParticipantManageController::class, 'destroy'])
         ->name('matches.participants.destroy');
+    Route::post('matches/{gameMatch}/entry-mail/participants/{participant}', [MatchEntryMailController::class, 'sendParticipant'])
+        ->name('matches.entry-mail.participant');
 
     Route::resource('users', UserManageController::class)->except(['show']);
 

@@ -88,9 +88,9 @@
                         @else
                             @php $top = $m->matchResults->sortBy('rank')->first(); @endphp
                             @if ($top && $m->isTeamMatch() && $top->team)
-                                <span class="kfc-badge">首位: {{ $top->team->name }}（{{ $top->total_weight }} g）</span>
+                                <span class="kfc-badge">首位: {{ $top->team->name }}（{{ $top->total_weight }} {{ $m->catchScoringUnitLabel() }}）</span>
                             @elseif ($top && $m->isIndividualMatch() && $top->player)
-                                <span class="kfc-badge">首位: {{ $top->player->displayLabel() }}（{{ $top->total_weight }} g）</span>
+                                <span class="kfc-badge">首位: {{ $top->player->displayLabel() }}（{{ $top->total_weight }} {{ $m->catchScoringUnitLabel() }}）</span>
                             @else
                                 <span class="kfc-badge-warn">順位未確定</span>
                             @endif

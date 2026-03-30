@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\CatchScoringBasis;
 use App\Enums\MatchPhase;
 use App\Enums\MatchType;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -14,6 +15,18 @@ class GameMatch extends Model
 {
     protected $table = 'matches';
 
+    public const CATCH_SCORING_LIMIT_MIN = 1;
+
+    public const CATCH_SCORING_LIMIT_MAX = 30;
+
+    /**
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'catch_scoring_basis' => 'weight',
+        'catch_scoring_limit' => 3,
+    ];
+
     protected $fillable = [
         'season_id',
         'match_type',
@@ -23,6 +36,8 @@ class GameMatch extends Model
         'field',
         'launch_shop',
         'rules',
+        'catch_scoring_basis',
+        'catch_scoring_limit',
         'is_finalized',
     ];
 
@@ -33,6 +48,8 @@ class GameMatch extends Model
             'end_datetime' => 'datetime',
             'is_finalized' => 'boolean',
             'match_type' => MatchType::class,
+            'catch_scoring_basis' => CatchScoringBasis::class,
+            'catch_scoring_limit' => 'integer',
         ];
     }
 
@@ -152,5 +169,62 @@ class GameMatch extends Model
     public function isIndividualMatch(): bool
     {
         return $this->match_type === MatchType::Individual;
+    }
+
+    /**
+     * 未マイグレーションや null でも落ちないよう、集計・表示用の基準を返す。
+     */
+    public function resolvedCatchScoringBasis(): CatchScoringBasis
+    {
+        $b = $this->getAttribute('catch_scoring_basis');
+
+        if ($b instanceof CatchScoringBasis) {
+            return $b;
+        }
+
+        if (is_string($b) && $b !== '') {
+            return CatchScoringBasis::tryFrom($b) ?? CatchScoringBasis::Weight;
+        }
+
+        return CatchScoringBasis::Weight;
+    }
+
+    public function catchScoringUnitLabel(): string
+    {
+        return $this->resolvedCatchScoringBasis()->unitLabel();
+    }
+
+    /**
+     * 順位表ブロックの見出し（公開ページ用）。
+     */
+    public function catchScoringStandingsHeading(): string
+    {
+        $basis = $this->resolvedCatchScoringBasis()->label();
+        $n = $this->effectiveCatchScoringLimit();
+
+        return '順位表（承認済み釣果・'.$basis.'・上位'.$n.'本合計）';
+    }
+
+    public function catchScoringTotalColumnLabel(): string
+    {
+        return '合計（'.$this->catchScoringUnitLabel().'）';
+    }
+
+    public function catchScoringBigColumnLabel(): string
+    {
+        return $this->resolvedCatchScoringBasis() === CatchScoringBasis::Length
+            ? '最長（cm）'
+            : 'ビッグ（g）';
+    }
+
+    public function effectiveCatchScoringLimit(): int
+    {
+        $n = (int) $this->catch_scoring_limit;
+
+        if ($n < self::CATCH_SCORING_LIMIT_MIN || $n > self::CATCH_SCORING_LIMIT_MAX) {
+            return 3;
+        }
+
+        return $n;
     }
 }

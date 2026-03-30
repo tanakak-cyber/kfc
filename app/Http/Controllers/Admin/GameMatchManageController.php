@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Enums\CatchScoringBasis;
 use App\Enums\MatchType;
 use App\Http\Controllers\Controller;
 use App\Models\FishCatch;
@@ -236,9 +237,18 @@ class GameMatchManageController extends Controller
             'field' => ['required', 'string', 'max:255'],
             'launch_shop' => ['nullable', 'string', 'max:255'],
             'rules' => ['nullable', 'string'],
+            'catch_scoring_basis' => ['required', Rule::in(array_map(fn (CatchScoringBasis $b) => $b->value, CatchScoringBasis::cases()))],
+            'catch_scoring_limit' => [
+                'required',
+                'integer',
+                'min:'.GameMatch::CATCH_SCORING_LIMIT_MIN,
+                'max:'.GameMatch::CATCH_SCORING_LIMIT_MAX,
+            ],
         ]);
 
         $data['match_type'] = MatchType::from($data['match_type']);
+        $data['catch_scoring_basis'] = CatchScoringBasis::from($data['catch_scoring_basis']);
+        $data['catch_scoring_limit'] = (int) $data['catch_scoring_limit'];
 
         return $data;
     }
@@ -256,7 +266,17 @@ class GameMatchManageController extends Controller
             'field' => ['required', 'string', 'max:255'],
             'launch_shop' => ['nullable', 'string', 'max:255'],
             'rules' => ['nullable', 'string'],
+            'catch_scoring_basis' => ['required', Rule::in(array_map(fn (CatchScoringBasis $b) => $b->value, CatchScoringBasis::cases()))],
+            'catch_scoring_limit' => [
+                'required',
+                'integer',
+                'min:'.GameMatch::CATCH_SCORING_LIMIT_MIN,
+                'max:'.GameMatch::CATCH_SCORING_LIMIT_MAX,
+            ],
         ]);
+
+        $data['catch_scoring_basis'] = CatchScoringBasis::from($data['catch_scoring_basis']);
+        $data['catch_scoring_limit'] = (int) $data['catch_scoring_limit'];
 
         return $data;
     }

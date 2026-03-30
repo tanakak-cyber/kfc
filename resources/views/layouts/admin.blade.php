@@ -12,7 +12,37 @@
 </head>
 <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
     <div class="flex min-h-screen flex-col md:flex-row">
-        <aside class="border-b border-zinc-800/50 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100 md:w-60 md:shrink-0 md:border-b-0 md:border-r md:border-zinc-800/50">
+        <header class="sticky top-0 z-[60] flex h-14 shrink-0 items-center justify-between gap-3 border-b border-zinc-800/50 bg-zinc-950 px-3 text-zinc-100 md:hidden">
+            <button
+                type="button"
+                id="kfc-admin-menu-toggle"
+                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-white/15 text-white transition hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/60"
+                aria-controls="kfc-admin-sidebar"
+                aria-expanded="false"
+                aria-label="管理メニューを開く"
+            >
+                <svg data-kfc-admin-icon-menu class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+                <svg data-kfc-admin-icon-close class="hidden h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+            <p class="min-w-0 flex-1 truncate text-center text-sm font-semibold text-white">{{ $siteTeamName }}</p>
+            <span class="w-10 shrink-0" aria-hidden="true"></span>
+        </header>
+
+        <div
+            id="kfc-admin-overlay"
+            class="fixed bottom-0 left-0 right-0 top-14 z-40 bg-zinc-950/60 opacity-0 pointer-events-none transition-opacity duration-200 md:hidden"
+            aria-hidden="true"
+        ></div>
+
+        <div class="flex min-h-0 min-w-0 flex-1 flex-col md:flex-row">
+        <aside
+            id="kfc-admin-sidebar"
+            class="fixed left-0 top-14 z-50 flex h-[calc(100dvh-3.5rem)] w-64 max-w-[min(100vw,16rem)] flex-col border-r border-zinc-800/50 bg-gradient-to-b from-zinc-950 via-zinc-900 to-zinc-950 text-zinc-100 md:static md:top-auto md:z-auto md:flex md:h-auto md:min-h-screen md:w-60 md:max-w-none md:shrink-0 md:border-b-0 md:border-r"
+        >
             <div class="flex items-center gap-2 border-b border-white/5 px-4 py-5">
                 <span class="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/20 text-sm font-bold text-emerald-300 ring-1 ring-emerald-400/30">A</span>
                 <div class="min-w-0">
@@ -20,7 +50,7 @@
                     <p class="truncate text-sm font-semibold text-white">{{ $siteTeamName }}</p>
                 </div>
             </div>
-            <nav class="flex flex-col gap-0.5 p-3 pb-6 text-sm">
+            <nav class="flex flex-col gap-0.5 overflow-y-auto p-3 pb-6 text-sm">
                 @php
                     $link = function (bool $active) {
                         return $active
@@ -45,7 +75,7 @@
                 </form>
             </nav>
         </aside>
-        <div class="min-w-0 flex-1">
+        <div class="min-w-0 flex-1 md:min-h-screen">
             <main class="mx-auto max-w-5xl px-4 py-8 sm:px-6">
                 @if (session('status'))
                     <div class="kfc-alert-success" role="status">
@@ -63,6 +93,7 @@
                 @endif
                 @yield('content')
             </main>
+        </div>
         </div>
     </div>
     <x-image-lightbox />
