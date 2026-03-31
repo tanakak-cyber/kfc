@@ -52,7 +52,7 @@
                 </div>
 
                 <div>
-                    <label class="kfc-label" for="selected_field_id">フィールド（1つ選択）</label>
+                    <label class="kfc-label" for="selected_field_id">希望のフィールド（1つ選択）</label>
                     <select name="selected_field_id" id="selected_field_id" required class="kfc-select mt-2 min-h-12 text-base">
                         <option value="">選択してください</option>
                         @foreach ($survey->fields as $f)
