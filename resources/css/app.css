@@ -355,16 +355,16 @@
         .kfc-pin-name-td.kfc-pin-name-td-team {
             max-width: none !important;
             min-width: max-content;
-            white-space: nowrap;
+            white-space: normal;
             word-break: normal;
             overflow: visible;
             text-overflow: unset;
-            vertical-align: middle;
+            vertical-align: top;
             line-height: 1.5;
         }
 
         .kfc-table-match-standings .kfc-match-team-name-clamp {
-            @apply inline max-h-none overflow-visible;
+            @apply block max-h-none overflow-visible;
         }
     }
 

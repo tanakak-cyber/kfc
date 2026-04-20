@@ -151,7 +151,14 @@
                             <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold sm:px-2.5 sm:py-3">{{ $r->rank }}</td>
                             <td class="@if ($gameMatch->isTeamMatch()) kfc-pin-name-td kfc-pin-name-td-team @else kfc-pin-name-td @endif px-2 py-2.5 sm:px-2.5 sm:py-3">
                                 @if ($gameMatch->isTeamMatch())
-                                    <span class="kfc-match-team-name-clamp">{{ $r->team?->name ?? '—' }}</span>
+                                    <div class="kfc-match-team-standings-cell">
+                                        <span class="kfc-match-team-name-clamp font-semibold text-zinc-900">{{ $r->team?->name ?? '—' }}</span>
+                                        @if ($r->team && $r->team->players->isNotEmpty())
+                                            <span class="mt-0.5 block text-xs font-normal leading-snug text-zinc-500">
+                                                （{{ $r->team->players->map(fn ($p) => $p->displayLabel())->implode('・') }}）
+                                            </span>
+                                        @endif
+                                    </div>
                                 @else
                                     {{ $r->player?->displayLabel() ?? '—' }}
                                 @endif
