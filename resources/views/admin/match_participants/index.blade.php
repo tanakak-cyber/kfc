@@ -10,6 +10,8 @@
         <a href="{{ route('admin.matches.edit', $gameMatch) }}" class="kfc-link">試合編集に戻る</a>
     </p>
 
+    @include('admin.partials.survey_match_rsvp_banner', ['gameMatch' => $gameMatch])
+
     @include('admin.partials.mail_transport_notice')
 
     @php

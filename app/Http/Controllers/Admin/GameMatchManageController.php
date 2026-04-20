@@ -260,6 +260,7 @@ class GameMatchManageController extends Controller
     {
         $data = $request->validate([
             'season_id' => ['required', 'exists:seasons,id'],
+            'match_type' => ['required', Rule::in(array_map(fn (MatchType $t) => $t->value, MatchType::cases()))],
             'title' => ['required', 'string', 'max:255'],
             'start_datetime' => ['required', 'date'],
             'end_datetime' => ['nullable', 'date', 'after:start_datetime'],
@@ -275,6 +276,7 @@ class GameMatchManageController extends Controller
             ],
         ]);
 
+        $data['match_type'] = MatchType::from($data['match_type']);
         $data['catch_scoring_basis'] = CatchScoringBasis::from($data['catch_scoring_basis']);
         $data['catch_scoring_limit'] = (int) $data['catch_scoring_limit'];
 

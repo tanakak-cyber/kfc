@@ -10,7 +10,7 @@
     @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- 順位表: 未ビルドの古い app.css に残る overflow 対策（public/css はそのまま配信） --}}
-    <link rel="stylesheet" href="{{ asset('css/kfc-tables.css') }}?v=19" />
+    <link rel="stylesheet" href="{{ asset('css/kfc-tables.css') }}?v=20" />
 </head>
 <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
     <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">

@@ -9,7 +9,9 @@ use App\Http\Controllers\Controller;
 use App\Models\GameMatch;
 use App\Models\MatchParticipant;
 use App\Models\MatchSurvey;
+use App\Models\MatchSurveyAnswer;
 use App\Models\MatchSurveyDate;
+use App\Models\MatchSurveyDateAnswer;
 use App\Models\MatchSurveyField;
 use App\Models\Player;
 use App\Models\Season;
@@ -222,9 +224,13 @@ class MatchSurveyManageController extends Controller
         $autoFormTeams = $matchType === MatchType::Team && $request->boolean('auto_form_teams');
         $hadCreatedMatch = $survey->created_match_id !== null;
 
-        $match = DB::transaction(function () use ($survey, $fieldRow, $heldAt, $matchType, $validated, $playerIds, $autoFormTeams): GameMatch {
+        $match = DB::transaction(function () use ($survey, $fieldRow, $dateRow, $heldAt, $matchType, $validated, $playerIds, $autoFormTeams): GameMatch {
+            $rsvpSnapshot = $this->buildSurveyRsvpSnapshot($survey, $dateRow, $fieldRow, $playerIds);
+
             $match = GameMatch::query()->create([
                 'season_id' => $survey->season_id,
+                'source_match_survey_id' => $survey->id,
+                'survey_rsvp_snapshot' => $rsvpSnapshot,
                 'match_type' => $matchType,
                 'title' => $validated['match_title'],
                 'start_datetime' => $heldAt,
@@ -276,7 +282,7 @@ class MatchSurveyManageController extends Controller
         if ($matchType === MatchType::Team && $autoFormTeams) {
             $message = '試合を作成し、成績順に基づきチームを自動編成しました。編集画面からチーム名・メンバーを調整できます。'.$suffix;
         } elseif ($matchType === MatchType::Team) {
-            $message = '試合を作成しました。チーム戦のため、試合編集からチームを登録してください。'.$suffix;
+            $message = '試合を作成しました。「チーム」画面にアンケートで選んだ出席者の一覧が表示されます。チーム登録を進めてください。'.$suffix;
         } else {
             $message = '試合を作成し、出席者分の参加者・投稿URLを発行しました。'.$suffix;
         }
@@ -284,5 +290,83 @@ class MatchSurveyManageController extends Controller
         return redirect()
             ->route('admin.matches.edit', $match)
             ->with('status', $message);
+    }
+
+    /**
+     * アンケート確定時点の「誰を試合に含めたか／日程○だが含めなかったか」を試合画面で再表示するためのスナップショット。
+     *
+     * @param  list<int>  $intendedPlayerIds
+     * @return array<string, mixed>
+     */
+    private function buildSurveyRsvpSnapshot(
+        MatchSurvey $survey,
+        MatchSurveyDate $dateRow,
+        MatchSurveyField $fieldRow,
+        array $intendedPlayerIds
+    ): array {
+        $intended = array_values(array_unique(array_map('intval', $intendedPlayerIds)));
+        sort($intended);
+
+        $dateYes = $this->playerIdsWithYesOnSurveyDate($survey, (int) $dateRow->id);
+        $dateAndFieldYes = $this->playerIdsWithYesOnSurveyDateAndField(
+            $survey,
+            (int) $dateRow->id,
+            (int) $fieldRow->id
+        );
+
+        return [
+            'intended_player_ids' => $intended,
+            'date_yes_player_ids' => $dateYes,
+            'date_and_field_yes_player_ids' => $dateAndFieldYes,
+            'match_survey_date_id' => $dateRow->id,
+            'match_survey_field_id' => $fieldRow->id,
+            'label_date' => $dateRow->on_date->format('Y/m/d'),
+            'label_field' => $fieldRow->field_name,
+        ];
+    }
+
+    /**
+     * @return list<int>
+     */
+    private function playerIdsWithYesOnSurveyDate(MatchSurvey $survey, int $matchSurveyDateId): array
+    {
+        $answerIds = MatchSurveyDateAnswer::query()
+            ->where('date_id', $matchSurveyDateId)
+            ->where('status', SurveyDateAnswerStatus::Yes)
+            ->pluck('answer_id');
+
+        return MatchSurveyAnswer::query()
+            ->where('survey_id', $survey->id)
+            ->whereIn('id', $answerIds)
+            ->pluck('player_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * 候補日に○かつ、希望フィールドが確定フィールドと一致する回答のみ。
+     *
+     * @return list<int>
+     */
+    private function playerIdsWithYesOnSurveyDateAndField(MatchSurvey $survey, int $matchSurveyDateId, int $fieldId): array
+    {
+        $answerIds = MatchSurveyDateAnswer::query()
+            ->where('date_id', $matchSurveyDateId)
+            ->where('status', SurveyDateAnswerStatus::Yes)
+            ->pluck('answer_id');
+
+        return MatchSurveyAnswer::query()
+            ->where('survey_id', $survey->id)
+            ->where('selected_field_id', $fieldId)
+            ->whereIn('id', $answerIds)
+            ->pluck('player_id')
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
     }
 }

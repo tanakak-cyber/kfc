@@ -131,6 +131,11 @@
 }
 
 /* sticky 列（順位 + 名前）— 幅は狭めて右側のスクロール領域を確保 */
+thead.kfc-thead {
+    background-color: #000;
+    color: #fff;
+}
+
 .kfc-pin-rank-th {
     position: sticky;
     left: 0;
@@ -138,7 +143,8 @@
     width: 3rem;
     min-width: 3rem;
     max-width: 3rem;
-    background: rgba(250, 250, 250, 0.95);
+    background: #000;
+    color: #fff;
     box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.1);
 }
 
@@ -159,7 +165,8 @@
     z-index: 6;
     min-width: 5.6rem;
     max-width: 7.2rem;
-    background: rgba(250, 250, 250, 0.95);
+    background: #000;
+    color: #fff;
     box-shadow: 4px 0 10px -4px rgba(0, 0, 0, 0.12);
 }
 
@@ -194,7 +201,8 @@
     z-index: 6;
     min-width: 5.6rem;
     max-width: 7.2rem;
-    background: rgba(250, 250, 250, 0.95);
+    background: #000;
+    color: #fff;
     box-shadow: 4px 0 10px -4px rgba(0, 0, 0, 0.12);
 }
 
@@ -276,9 +284,9 @@
     }
 }
 
-/* 見出しが薄く見える旧バンドル向け: 日本語ヘッダーを読みやすく */
+/* 見出し行: 黒背景・白文字（旧バンドル向けも統一） */
 thead.kfc-thead th {
-    color: rgb(63 63 70);
+    color: #fff;
     text-transform: none;
     letter-spacing: 0.025em;
 }

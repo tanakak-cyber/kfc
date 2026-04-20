@@ -92,8 +92,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
 
     Route::get('matches/{gameMatch}/teams', [MatchTeamManageController::class, 'index'])
         ->name('matches.teams.index');
+    Route::post('matches/{gameMatch}/teams/auto-form', [MatchTeamManageController::class, 'autoForm'])
+        ->name('matches.teams.auto-form');
     Route::post('matches/{gameMatch}/teams', [MatchTeamManageController::class, 'store'])
         ->name('matches.teams.store');
+    Route::put('matches/{gameMatch}/teams/{team}', [MatchTeamManageController::class, 'update'])
+        ->name('matches.teams.update');
     Route::delete('matches/{gameMatch}/teams/{team}', [MatchTeamManageController::class, 'destroy'])
         ->name('matches.teams.destroy');
     Route::post('matches/{gameMatch}/entry-mail/all', [MatchEntryMailController::class, 'sendAll'])

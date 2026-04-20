@@ -9,7 +9,7 @@
     <title>@yield('title', '管理') — {{ $siteTeamName }}</title>
     @include('partials.favicon')
     @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <link rel="stylesheet" href="{{ asset('css/kfc-tables.css') }}?v=19" />
+    <link rel="stylesheet" href="{{ asset('css/kfc-tables.css') }}?v=20" />
 </head>
 <body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
     <div class="flex min-h-screen flex-col md:flex-row">

@@ -33,16 +33,36 @@
                     $p = $seasonParticipationStats->get($row->player_id);
                     $maxLen = data_get($c, 'max_length_cm');
                     $maxWt = data_get($c, 'max_weight_g');
+                    $matchesPlayed = (int) data_get($p, 'matches_played', 0);
+                    $catchCount = (int) data_get($c, 'catch_count', 0);
+                    $isSeasonBozu = $matchesPlayed >= 1 && $catchCount === 0;
                 @endphp
                 <tr class="kfc-trow">
                     <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold text-zinc-900 sm:px-2.5 sm:py-3">{{ $row->display_rank }}</td>
                     <td class="kfc-pin-name-td px-2 py-2.5 sm:px-2.5 sm:py-3">
-                        <a href="{{ route('players.show', $row->player) }}" class="kfc-link">{{ $row->player->displayLabel() }}</a>
+                        <span class="inline-flex max-w-full flex-wrap items-center gap-1">
+                            <a href="{{ route('players.show', $row->player) }}" class="kfc-link min-w-0">{{ $row->player->displayLabel() }}</a>
+                            @if ($isSeasonBozu)
+                                <img
+                                    src="{{ asset('images/kfc-bozu-icon.png') }}"
+                                    alt="坊主"
+                                    width="22"
+                                    height="22"
+                                    class="h-[1.35rem] w-[1.35rem] shrink-0 object-contain align-[-0.2em]"
+                                    loading="lazy"
+                                    decoding="async"
+                                />
+                            @endif
+                        </span>
                     </td>
                     <td class="whitespace-nowrap px-3 py-2.5 font-medium tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $row->total_points }}</td>
-                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ data_get($p, 'matches_played', 0) }}</td>
+                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $matchesPlayed }}</td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ data_get($p, 'blank_matches', 0) }}</td>
-                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ data_get($c, 'catch_count', 0) }}</td>
+                    <td @class([
+                        'whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3',
+                        'font-semibold text-red-600' => $isSeasonBozu,
+                        'text-zinc-800' => ! $isSeasonBozu,
+                    ])>{{ $catchCount }}</td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $maxLen !== null && $maxLen !== '' ? $maxLen : '—' }}</td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $maxWt !== null && $maxWt !== '' ? $maxWt.' g' : '—' }}</td>
                 </tr>

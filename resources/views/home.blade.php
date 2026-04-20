@@ -116,26 +116,4 @@
     </section>
 
 
-@push('scripts')
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  document.querySelectorAll('.kfc-trow').forEach(function (row) {
-    var cells = row.querySelectorAll('td');
-
-    // 8列の行だけ対象（個人順位テーブル）
-    if (cells.length !== 8) return;
-
-    var text = cells[5].textContent
-      .replace(/[０-９]/g, function(s) {
-        return String.fromCharCode(s.charCodeAt(0) - 65248);
-      })
-      .trim();
-
-    if (parseInt(text, 10) === 0) {
-      cells[5].innerHTML = '<span style="color:#dc2626;font-weight:700">0</span>';
-    }
-  });
-});
-</script>
-@endpush
 @endsection

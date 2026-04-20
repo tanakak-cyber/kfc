@@ -29,6 +29,8 @@ class GameMatch extends Model
 
     protected $fillable = [
         'season_id',
+        'source_match_survey_id',
+        'survey_rsvp_snapshot',
         'match_type',
         'title',
         'start_datetime',
@@ -48,6 +50,7 @@ class GameMatch extends Model
             'end_datetime' => 'datetime',
             'is_finalized' => 'boolean',
             'match_type' => MatchType::class,
+            'survey_rsvp_snapshot' => 'array',
             'catch_scoring_basis' => CatchScoringBasis::class,
             'catch_scoring_limit' => 'integer',
         ];
@@ -109,6 +112,31 @@ class GameMatch extends Model
     public function season(): BelongsTo
     {
         return $this->belongsTo(Season::class, 'season_id');
+    }
+
+    public function sourceMatchSurvey(): BelongsTo
+    {
+        return $this->belongsTo(MatchSurvey::class, 'source_match_survey_id');
+    }
+
+    /**
+     * アンケートから作成した試合で、確定した候補日に「出席（〇）」と回答した選手の ID 一覧。
+     * スナップショットが無い試合では null（自動チーム編成の候補に全選手を出す）。
+     *
+     * @return list<int>|null
+     */
+    public function surveyDateYesPlayerIdAllowlist(): ?array
+    {
+        $snap = $this->survey_rsvp_snapshot;
+        if (! is_array($snap) || ! array_key_exists('date_yes_player_ids', $snap)) {
+            return null;
+        }
+        $ids = $snap['date_yes_player_ids'];
+        if (! is_array($ids)) {
+            return null;
+        }
+
+        return array_values(array_unique(array_map('intval', $ids)));
     }
 
     public function teams(): HasMany

@@ -266,7 +266,7 @@
                             {{ $section['heading'] }}
                         </h3>
                     @endunless
-                    <div class="@unless ($section['fallback_flat'] ?? false) mt-5 @endunless grid gap-5 sm:grid-cols-2">
+                    <div class="@unless ($section['fallback_flat'] ?? false) mt-5 @endunless kfc-catch-photo-grid">
                         @forelse ($section['catches'] as $catch)
                             @php
                                 $catchUrls = $catch->images->map(fn ($im) => asset('storage/'.$im->path))->values()->all();
@@ -282,7 +282,7 @@
                                 </div>
                             </div>
                         @empty
-                            <p class="kfc-muted sm:col-span-2">
+                            <p class="kfc-muted col-span-full">
                                 @if ($section['fallback_flat'] ?? false)
                                     承認済みの釣果はまだありません。
                                 @else

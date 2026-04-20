@@ -42,10 +42,10 @@
                 @endforeach
 
                 @if ($hasSecondary)
-                    <div class="mt-6">
+                    <div class="mt-6 flex justify-center">
                         <button
                             type="button"
-                            class="kfc-feed-expand-lower inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                            class="kfc-btn-emerald text-xs sm:text-sm"
                             data-kfc-feed-expand
                             data-kfc-feed-panel="{{ $secondaryPanelId }}"
                             aria-expanded="false"

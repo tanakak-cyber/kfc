@@ -1,8 +1,13 @@
-@if (! isset($gameMatch))
-    <div>
-        <span class="kfc-label">試合形式</span>
+@php
+    $mt = old('match_type', isset($gameMatch) ? $gameMatch->match_type->value : 'team');
+@endphp
+<div>
+    <span class="kfc-label">試合形式</span>
+    @if (isset($gameMatch) && $gameMatch->is_finalized)
+        <p class="mt-2 text-sm font-medium text-zinc-800">{{ $gameMatch->match_type->label() }}</p>
+        <p class="mt-1 text-xs text-zinc-500">確定済みのため形式は変更できません。</p>
+    @else
         <div class="mt-3 flex flex-wrap gap-4 text-sm">
-            @php $mt = old('match_type', 'team'); @endphp
             <label class="inline-flex cursor-pointer items-center gap-2">
                 <input type="radio" name="match_type" value="team" class="text-emerald-600 focus:ring-emerald-500/40" @checked($mt === 'team') required>
                 <span>チーム戦</span>
@@ -12,9 +17,15 @@
                 <span>個人戦</span>
             </label>
         </div>
-        <p class="mt-2 text-xs text-zinc-500">作成後は形式を変更できません。個人戦は参加者ごとに投稿URLを発行します。</p>
-    </div>
-@endif
+        <p class="mt-2 text-xs text-zinc-500">
+            @if (isset($gameMatch))
+                チーム戦はチーム単位、個人戦は「参加者」に登録した選手のみが順位対象です。変更したらチーム／参加者・釣果の整合を確認してください。
+            @else
+                個人戦は参加者ごとに投稿URLを発行します。試合が確定するまでは、試合編集で形式を変更できます。
+            @endif
+        </p>
+    @endif
+</div>
 <div>
     <label class="kfc-label">シーズン</label>
     <select name="season_id" class="kfc-select mt-2" required>

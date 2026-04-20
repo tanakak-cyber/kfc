@@ -90,6 +90,28 @@
         @apply border-b border-emerald-100/90 pb-2.5 text-base font-bold tracking-tight text-zinc-900 sm:text-lg;
     }
 
+    /*
+     * 釣果写真カード: PC 幅で 3 列（Tailwind のブレークポイントだけに依存せず確実に 3 列にする）
+     * 640px 未満: 1 列 / 640–767px: 2 列 / 768px 以上: 3 列
+     */
+    .kfc-catch-photo-grid {
+        display: grid;
+        gap: 1.25rem;
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    @media (min-width: 640px) {
+        .kfc-catch-photo-grid {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 768px) {
+        .kfc-catch-photo-grid {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+    }
+
     .kfc-muted {
         @apply text-sm text-zinc-500;
     }
@@ -261,7 +283,7 @@
     }
 
     .kfc-thead {
-        @apply border-b border-zinc-200/80 bg-zinc-50/95 text-xs font-semibold tracking-wide text-zinc-700;
+        @apply border-b border-zinc-700 bg-black text-xs font-semibold tracking-wide text-white;
     }
 
     .kfc-trow {
@@ -270,7 +292,7 @@
 
     /* 横スクロール時も順位・名前列が見えるよう左固定（overflow-x 内の table 用） */
     .kfc-pin-rank-th {
-        @apply sticky left-0 z-[6] w-[3rem] min-w-[3rem] max-w-[3rem] bg-zinc-50/95 shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)];
+        @apply sticky left-0 z-[6] w-[3rem] min-w-[3rem] max-w-[3rem] bg-black text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)];
     }
 
     .kfc-pin-rank-td {
@@ -278,7 +300,7 @@
     }
 
     .kfc-pin-name-th {
-        @apply sticky left-[3rem] z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-zinc-50/95 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
+        @apply sticky left-[3rem] z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-black text-white shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
     }
 
     .kfc-pin-name-td {
@@ -296,7 +318,7 @@
 
     /* 選手別の付与: チーム列なし・先頭の「選手」だけ左固定（left は 0） */
     .kfc-pin-solo-name-th {
-        @apply sticky left-0 z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-zinc-50/95 shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
+        @apply sticky left-0 z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-black text-white shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
     }
 
     .kfc-pin-solo-name-td {
