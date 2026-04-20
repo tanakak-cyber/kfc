@@ -83,6 +83,7 @@
                 <thead class="kfc-thead">
                     <tr>
                         <th class="px-4 py-3">試合</th>
+                        <th class="px-4 py-3">順位</th>
                         <th class="px-4 py-3">本数</th>
                         <th class="px-4 py-3">最大長さ（cm）</th>
                         <th class="px-4 py-3">最大重さ（g）</th>
@@ -94,13 +95,14 @@
                             <td class="px-4 py-3">
                                 <a href="{{ route('matches.show', $row['match']) }}" class="kfc-link">{{ $row['match']->title }}</a>
                             </td>
+                            <td class="px-4 py-3 tabular-nums">{{ $row['rank'] !== null ? $row['rank'].'位' : '—' }}</td>
                             <td class="px-4 py-3 tabular-nums">{{ $row['count'] }}</td>
                             <td class="px-4 py-3 tabular-nums">{{ $row['max_length'] !== null && $row['max_length'] !== '' ? \App\Support\PublicDisplayNumber::upToOneDecimal($row['max_length']).' cm' : '—' }}</td>
                             <td class="px-4 py-3 tabular-nums">{{ $row['max_weight'] !== null ? \App\Support\PublicDisplayNumber::upToOneDecimal($row['max_weight']).' g' : '—' }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="4" class="px-4 py-6 kfc-muted">データがありません。</td>
+                            <td colspan="5" class="px-4 py-6 kfc-muted">データがありません。</td>
                         </tr>
                     @endforelse
                 </tbody>
