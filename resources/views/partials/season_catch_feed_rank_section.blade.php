@@ -7,11 +7,7 @@
     </div>
 @endif
 <div class="min-w-0">
-    @unless ($section['fallback_flat'] ?? false)
-        <h4 class="kfc-heading-4">
-            {{ $section['heading'] }}
-        </h4>
-    @endunless
+    @include('partials.catch_rank_section_heading', ['section' => $section, 'headingTag' => 'h4'])
     <div class="@unless ($section['fallback_flat'] ?? false) mt-5 @endunless kfc-catch-photo-grid">
         @forelse ($section['catches'] as $catch)
             @php
@@ -29,7 +25,7 @@
                             <span class="font-normal text-zinc-500">（{{ $catch->team->name }}）</span>
                         @endif
                     </p>
-                    <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_g }} g</p>
+                    <p class="mt-1 text-zinc-600">長さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->length_cm) }} cm / 重さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->weight_g) }} g</p>
                 </div>
             </div>
         @empty

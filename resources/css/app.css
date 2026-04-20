@@ -292,11 +292,11 @@
 
     /* 横スクロール時も順位・名前列が見えるよう左固定（overflow-x 内の table 用） */
     .kfc-pin-rank-th {
-        @apply sticky left-0 z-[6] w-[3rem] min-w-[3rem] max-w-[3rem] bg-black text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)];
+        @apply sticky left-0 z-[6] w-[3rem] min-w-[3rem] max-w-[3rem] bg-black text-center text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)];
     }
 
     .kfc-pin-rank-td {
-        @apply sticky left-0 z-[5] w-[3rem] min-w-[3rem] max-w-[3rem] bg-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.08)];
+        @apply sticky left-0 z-[5] w-[3rem] min-w-[3rem] max-w-[3rem] bg-white text-center shadow-[4px_0_8px_-4px_rgba(0,0,0,0.08)];
     }
 
     .kfc-pin-name-th {

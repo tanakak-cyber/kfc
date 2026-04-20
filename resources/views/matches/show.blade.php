@@ -23,15 +23,15 @@
     </div>
 
     @if ($gameMatch->rules && $gameMatch->isTeamMatch())
-        {{-- PC: ルール・概要と参加チームを横並び / SP: 縦並びのまま --}}
-        <div class="mt-8 flex flex-col gap-8 lg:flex-row lg:items-stretch lg:gap-6">
-            <div class="kfc-card-sm min-h-0 min-w-0 flex-1 whitespace-pre-line text-sm leading-relaxed text-zinc-700">
-                <h2 class="kfc-section-title">ルール・概要</h2>
-                <p class="mt-3">{{ $gameMatch->rules }}</p>
+        {{-- PC: 横並び（flex）。grid はビルドによって列が効かない報告があったため flex+flex-1 で固定 --}}
+        <div class="mt-8 flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-6">
+            <div class="kfc-card flex min-h-0 min-w-0 flex-1 flex-col lg:basis-0">
+                <h2 class="kfc-section-title shrink-0">ルール・概要</h2>
+                <p class="mt-3 whitespace-pre-line text-sm leading-relaxed text-zinc-700">{{ $gameMatch->rules }}</p>
             </div>
-            <section class="kfc-card min-h-0 min-w-0 flex-1">
-                <h2 class="kfc-section-title">参加チーム</h2>
-                <ul class="mt-4 space-y-3 text-sm">
+            <div class="kfc-card flex min-h-0 min-w-0 flex-1 flex-col lg:basis-0">
+                <h2 class="kfc-section-title shrink-0">参加チーム</h2>
+                <ul class="mt-3 space-y-3 text-sm">
                     @forelse ($gameMatch->teams as $team)
                         <li class="kfc-card-nested !p-4">
                             <p class="font-semibold text-zinc-900">{{ $team->name }}</p>
@@ -45,7 +45,7 @@
                         <li class="kfc-muted">登録チームがありません。</li>
                     @endforelse
                 </ul>
-            </section>
+            </div>
         </div>
     @else
         @if ($gameMatch->rules)
@@ -146,9 +146,27 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse ($gameMatch->matchResults->sortBy('rank') as $r)
+                    @php
+                        $standingsRows = $gameMatch->matchResults->sortBy('rank');
+                        $maxBigFishWeight = (float) ($standingsRows->max('big_fish_weight') ?? 0);
+                        $catchUnitLabel = $gameMatch->catchScoringUnitLabel();
+                    @endphp
+                    @forelse ($standingsRows as $r)
+                        @php
+                            $bigVal = (float) $r->big_fish_weight;
+                            $isMaxBigInStandings = $maxBigFishWeight > 0 && abs($bigVal - $maxBigFishWeight) < 0.001;
+                            $bigFishOwnerSuffix = '';
+                            if ($gameMatch->isTeamMatch() && $r->team_id && $bigVal > 0) {
+                                $lbl = $teamBigFishPlayerLabelByTeamId[$r->team_id] ?? null;
+                                if (filled($lbl)) {
+                                    $bigFishOwnerSuffix = '（'.$lbl.'）';
+                                }
+                            }
+                        @endphp
                         <tr class="kfc-trow">
-                            <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold sm:px-2.5 sm:py-3">{{ $r->rank }}</td>
+                            <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold sm:px-2.5 sm:py-3">
+                                <x-rank-medal :rank="$r->rank" />
+                            </td>
                             <td class="@if ($gameMatch->isTeamMatch()) kfc-pin-name-td kfc-pin-name-td-team @else kfc-pin-name-td @endif px-2 py-2.5 sm:px-2.5 sm:py-3">
                                 @if ($gameMatch->isTeamMatch())
                                     <div class="kfc-match-team-standings-cell">
@@ -163,19 +181,28 @@
                                     {{ $r->player?->displayLabel() ?? '—' }}
                                 @endif
                             </td>
-                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $r->total_weight }}</td>
-                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $r->big_fish_weight }}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($r->total_weight) }} {{ $catchUnitLabel }}</td>
+                            <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">
+                                @if ($isMaxBigInStandings)
+                                    <span class="inline-flex flex-wrap items-center gap-1.5 align-middle">
+                                        <x-gold-star-icon />
+                                        <span class="text-sm font-extrabold tabular-nums text-amber-800">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($r->big_fish_weight) }} {{ $catchUnitLabel }}{{ $bigFishOwnerSuffix }}</span>
+                                    </span>
+                                @else
+                                    <span class="tabular-nums">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($r->big_fish_weight) }} {{ $catchUnitLabel }}{{ $bigFishOwnerSuffix }}</span>
+                                @endif
+                            </td>
                             <td class="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium sm:px-4 sm:py-3">
                                 @if ($gameMatch->isIndividualMatch())
                                     @php $extra = (int) ($playerBonusTotals->get($r->player_id) ?? 0); @endphp
                                     @if ($extra > 0)
-                                        <span class="font-semibold text-zinc-900">{{ $r->points + $extra }}</span>
-                                        <span class="mt-0.5 block text-xs font-normal text-zinc-500">順位 {{ $r->points }} + 追加 {{ $extra }}</span>
+                                        <span class="font-semibold text-zinc-900">{{ $r->points + $extra }} pt</span>
+                                        <span class="mt-0.5 block text-xs font-normal text-zinc-500">順位 {{ $r->points }} pt + 追加 {{ $extra }} pt</span>
                                     @else
-                                        {{ $r->points }}
+                                        {{ $r->points }} pt
                                     @endif
                                 @else
-                                    {{ $r->points }}
+                                    {{ $r->points }} pt
                                 @endif
                             </td>
                         </tr>
@@ -213,15 +240,15 @@
                                     <td class="kfc-pin-solo-name-td whitespace-nowrap px-2 py-2.5 sm:px-2.5 sm:py-3">
                                         <a href="{{ route('players.show', $row['player']) }}" class="kfc-link">{{ $row['player']->displayLabel() }}</a>
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $row['rank_points'] }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">{{ $row['rank_points'] }} pt</td>
                                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums sm:px-4 sm:py-3">
                                         @if ($row['bonus'] > 0)
-                                            +{{ $row['bonus'] }}
+                                            +{{ $row['bonus'] }} pt
                                         @else
                                             —
                                         @endif
                                     </td>
-                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium sm:px-4 sm:py-3">{{ $row['match_total'] }}</td>
+                                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums font-medium sm:px-4 sm:py-3">{{ $row['match_total'] }} pt</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -268,11 +295,7 @@
                     </div>
                 @endunless
                 <div class="min-w-0">
-                    @unless ($section['fallback_flat'] ?? false)
-                        <h3 class="kfc-heading-4">
-                            {{ $section['heading'] }}
-                        </h3>
-                    @endunless
+                    @include('partials.catch_rank_section_heading', ['section' => $section, 'headingTag' => 'h3'])
                     <div class="@unless ($section['fallback_flat'] ?? false) mt-5 @endunless kfc-catch-photo-grid">
                         @forelse ($section['catches'] as $catch)
                             @php
@@ -285,7 +308,7 @@
                                     @if ($catch->team)
                                         <p class="mt-0.5 text-xs text-zinc-500">{{ $catch->team->name }}</p>
                                     @endif
-                                    <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_g }} g</p>
+                                    <p class="mt-1 text-zinc-600">長さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->length_cm) }} cm / 重さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->weight_g) }} g</p>
                                 </div>
                             </div>
                         @empty

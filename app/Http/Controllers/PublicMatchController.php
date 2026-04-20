@@ -7,6 +7,7 @@ use App\Enums\CatchScoringBasis;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
 use App\Services\MatchResultSyncService;
+use App\Services\RankingService;
 use App\Support\CatchSectionsByRank;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -48,11 +49,24 @@ class PublicMatchController extends Controller
 
         $teamMatchPlayerBreakdown = $this->matchResults->teamMatchPlayerBreakdownRows($gameMatch, $playerBonusTotals);
 
+        $teamBigFishPlayerLabelByTeamId = [];
+        if ($gameMatch->isTeamMatch()) {
+            $ranking = app(RankingService::class);
+            foreach ($gameMatch->matchResults as $mr) {
+                if (! $mr->team_id || ! $mr->team) {
+                    continue;
+                }
+                $owner = $ranking->teamBigFishPlayer($mr->team, $gameMatch, true);
+                $teamBigFishPlayerLabelByTeamId[$mr->team_id] = $owner?->displayLabel();
+            }
+        }
+
         return view('matches.show', compact(
             'gameMatch',
             'catchSections',
             'playerBonusTotals',
-            'teamMatchPlayerBreakdown'
+            'teamMatchPlayerBreakdown',
+            'teamBigFishPlayerLabelByTeamId'
         ));
     }
 }

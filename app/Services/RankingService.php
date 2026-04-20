@@ -50,6 +50,26 @@ class RankingService
     }
 
     /**
+     * チーム戦の「ビッグ」に相当する1尾を釣った選手（承認済み釣果・採点基準どおりの並びの先頭）。
+     * 個人戦の順位表では不要のため、ビュー側でチーム戦のみ表示する。
+     */
+    public function teamBigFishPlayer(Team $team, GameMatch $match, bool $approvedOnly): ?Player
+    {
+        $query = FishCatch::query()
+            ->where('match_id', $match->id)
+            ->where('team_id', $team->id);
+        $this->applyApprovalScope($query, $approvedOnly);
+        $basis = $match->resolvedCatchScoringBasis();
+        if ($basis === CatchScoringBasis::Length) {
+            $query->orderByRaw('COALESCE(length_cm, 0) DESC')->orderBy('id');
+        } else {
+            $query->orderByDesc('weight_g')->orderBy('id');
+        }
+
+        return $query->first()?->player;
+    }
+
+    /**
      * @return list<array{team_id: int, total_weight: float, big_fish_weight: float, rank: int, points: int}>
      */
     public function rankTeams(GameMatch $match, Collection $teams, bool $approvedOnly): array

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 52" width="48" height="52" role="img" aria-label="3M Ес└ы">
+  <defs>
+    <linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD4A8"/>
+      <stop offset="35%" stop-color="#E8A060"/>
+      <stop offset="70%" stop-color="#CD7F32"/>
+      <stop offset="100%" stop-color="#A65D1E"/>
+    </linearGradient>
+    <linearGradient id="r3" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F0B078"/>
+      <stop offset="100%" stop-color="#C8762E"/>
+    </linearGradient>
+  </defs>
+  <path d="M10 6 L24 18 L38 6 L40 12 L24 24 L8 12 Z" fill="url(#r3)" stroke="#8B4A1E" stroke-width="1"/>
+  <circle cx="24" cy="34" r="16" fill="url(#g3)" stroke="#8B4A1E" stroke-width="1.5"/>
+  <circle cx="24" cy="34" r="13" fill="none" stroke="#FFE0C2" stroke-width="0.75" opacity="0.85"/>
+  <text x="24" y="40" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="18" font-weight="800" fill="#4A2C0A">3</text>
+</svg>

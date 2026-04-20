@@ -27,6 +27,16 @@
             </tr>
         </thead>
         <tbody>
+            @php
+                $seasonStandingsMaxWeight = 0.0;
+                foreach ($standings as $_row) {
+                    $_c = $seasonCatchStats->get($_row->player_id);
+                    $_mw = data_get($_c, 'max_weight_g');
+                    if ($_mw !== null && $_mw !== '') {
+                        $seasonStandingsMaxWeight = max($seasonStandingsMaxWeight, (float) $_mw);
+                    }
+                }
+            @endphp
             @foreach ($standings as $row)
                 @php
                     $c = $seasonCatchStats->get($row->player_id);
@@ -36,9 +46,14 @@
                     $matchesPlayed = (int) data_get($p, 'matches_played', 0);
                     $catchCount = (int) data_get($c, 'catch_count', 0);
                     $isSeasonBozu = $matchesPlayed >= 1 && $catchCount === 0;
+                    $maxWtFloat = ($maxWt !== null && $maxWt !== '') ? (float) $maxWt : null;
+                    $isSeasonTableMaxWeight = $maxWtFloat !== null && $seasonStandingsMaxWeight > 0
+                        && abs(round($maxWtFloat, 1) - round($seasonStandingsMaxWeight, 1)) < 0.01;
                 @endphp
                 <tr class="kfc-trow">
-                    <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold text-zinc-900 sm:px-2.5 sm:py-3">{{ $row->display_rank }}</td>
+                    <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold text-zinc-900 sm:px-2.5 sm:py-3">
+                        <x-rank-medal :rank="$row->display_rank" />
+                    </td>
                     <td class="kfc-pin-name-td px-2 py-2.5 sm:px-2.5 sm:py-3">
                         <span class="inline-flex max-w-full flex-wrap items-center gap-1">
                             <a href="{{ route('players.show', $row->player) }}" class="kfc-link min-w-0">{{ $row->player->displayLabel() }}</a>
@@ -55,7 +70,7 @@
                             @endif
                         </span>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-2.5 font-medium tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $row->total_points }}</td>
+                    <td class="whitespace-nowrap px-3 py-2.5 font-medium tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($row->total_points) }} pt</td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $matchesPlayed }}</td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ data_get($p, 'blank_matches', 0) }}</td>
                     <td @class([
@@ -63,8 +78,21 @@
                         'font-semibold text-red-600' => $isSeasonBozu,
                         'text-zinc-800' => ! $isSeasonBozu,
                     ])>{{ $catchCount }}</td>
-                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $maxLen !== null && $maxLen !== '' ? $maxLen : '—' }}</td>
-                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $maxWt !== null && $maxWt !== '' ? $maxWt.' g' : '—' }}</td>
+                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $maxLen !== null && $maxLen !== '' ? \App\Support\PublicDisplayNumber::upToOneDecimal($maxLen).' cm' : '—' }}</td>
+                    <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">
+                        @if ($maxWt !== null && $maxWt !== '')
+                            @if ($isSeasonTableMaxWeight)
+                                <span class="inline-flex items-center gap-1.5 align-middle">
+                                    <x-gold-star-icon />
+                                    <span class="font-extrabold text-amber-800">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($maxWt) }} g</span>
+                                </span>
+                            @else
+                                {{ \App\Support\PublicDisplayNumber::upToOneDecimal($maxWt) }} g
+                            @endif
+                        @else
+                            —
+                        @endif
+                    </td>
                 </tr>
             @endforeach
         </tbody>

@@ -21,7 +21,7 @@
         @else
             <ol class="mt-4 list-decimal space-y-2 pl-5 text-sm text-zinc-800">
                 @foreach ($topCatches as $row)
-                    <li><span class="tabular-nums font-medium">{{ $row['weight_g'] }}</span> g / <span class="tabular-nums">{{ $row['length_cm'] }}</span> cm</li>
+                    <li><span class="tabular-nums font-medium">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($row['weight_g']) }}</span> g / <span class="tabular-nums">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($row['length_cm']) }}</span> cm</li>
                 @endforeach
             </ol>
         @endif
