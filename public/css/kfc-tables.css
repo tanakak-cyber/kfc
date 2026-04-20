@@ -3,8 +3,22 @@
  * 旧バンドルに残る .kfc-table-shell { overflow: hidden } が -mx-6 と相殺して左右クリップするのを防ぐ
  */
 .kfc-table-shell {
+    /* 既定ははみ出しを見せる（card-bleed 等）。Tailwind の overflow-* と併用する場合は下で上書きする */
     overflow: visible !important;
     -webkit-tap-highlight-color: transparent;
+}
+
+/* overflow: visible !important が単体指定だと .overflow-auto 等を潰す（管理・試合チームの縦スクロール表など） */
+.kfc-table-shell.overflow-auto {
+    overflow: auto !important;
+}
+.kfc-table-shell.overflow-x-auto {
+    overflow-x: auto !important;
+    overflow-y: visible !important;
+}
+.kfc-table-shell.overflow-y-auto {
+    overflow-y: auto !important;
+    overflow-x: visible !important;
 }
 
 .kfc-table-shell .kfc-link {
