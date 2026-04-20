@@ -17,7 +17,7 @@
     </div>
     <div class="w-full max-w-md rounded-3xl border border-zinc-200/80 bg-white/90 p-8 shadow-2xl shadow-zinc-950/10 ring-1 ring-zinc-950/[0.04] backdrop-blur-sm">
         <div class="mx-auto mb-6 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-lg font-bold text-white shadow-lg">A</div>
-        <h1 class="text-center text-xl font-bold tracking-tight text-zinc-900">管理者ログイン</h1>
+        <h1 class="kfc-page-title kfc-page-title--center kfc-page-title--compact">管理者ログイン</h1>
         @if ($errors->any())
             <div class="kfc-alert-error mt-5">
                 {{ $errors->first() }}

@@ -23,39 +23,40 @@ final class EntryCatchPhotoExifValidator
 
     /**
      * @param  list<UploadedFile>  $files
+     * @param  string  $errorKey  Validation エラー時のキー（例: photos, entries.0.photos）
      */
-    public function assertAllPhotosWithinMatchWindow(GameMatch $match, array $files): void
+    public function assertAllPhotosWithinMatchWindow(GameMatch $match, array $files, string $errorKey = 'photos'): void
     {
         if ($match->start_datetime === null) {
             throw ValidationException::withMessages([
-                'photos' => [self::MSG_NO_EXIF],
+                $errorKey => [self::MSG_NO_EXIF],
             ]);
         }
 
         foreach ($files as $file) {
-            $this->assertUploadedFileWithinMatchWindow($match, $file);
+            $this->assertUploadedFileWithinMatchWindow($match, $file, $errorKey);
         }
     }
 
-    private function assertUploadedFileWithinMatchWindow(GameMatch $match, UploadedFile $file): void
+    private function assertUploadedFileWithinMatchWindow(GameMatch $match, UploadedFile $file, string $errorKey = 'photos'): void
     {
         if (! function_exists('exif_read_data')) {
             throw ValidationException::withMessages([
-                'photos' => [self::MSG_NO_EXIF],
+                $errorKey => [self::MSG_NO_EXIF],
             ]);
         }
 
         $path = $file->getRealPath() ?: $file->path();
         if ($path === false || $path === '' || ! is_readable($path)) {
             throw ValidationException::withMessages([
-                'photos' => [self::MSG_NO_EXIF],
+                $errorKey => [self::MSG_NO_EXIF],
             ]);
         }
 
         $exif = @exif_read_data($path);
         if ($exif === false || empty($exif['DateTimeOriginal'])) {
             throw ValidationException::withMessages([
-                'photos' => [self::MSG_NO_EXIF],
+                $errorKey => [self::MSG_NO_EXIF],
             ]);
         }
 
@@ -64,7 +65,7 @@ final class EntryCatchPhotoExifValidator
             $photoTime = Carbon::createFromFormat(self::EXIF_DATETIME_FORMAT, $raw, self::TZ);
         } catch (\Throwable) {
             throw ValidationException::withMessages([
-                'photos' => [self::MSG_NO_EXIF],
+                $errorKey => [self::MSG_NO_EXIF],
             ]);
         }
 
@@ -72,7 +73,7 @@ final class EntryCatchPhotoExifValidator
 
         if ($photoTime->lt($start)) {
             throw ValidationException::withMessages([
-                'photos' => [self::MSG_OUTSIDE_MATCH],
+                $errorKey => [self::MSG_OUTSIDE_MATCH],
             ]);
         }
 
@@ -80,7 +81,7 @@ final class EntryCatchPhotoExifValidator
             $end = $match->end_datetime->copy()->timezone(self::TZ);
             if ($photoTime->gt($end)) {
                 throw ValidationException::withMessages([
-                    'photos' => [self::MSG_OUTSIDE_MATCH],
+                    $errorKey => [self::MSG_OUTSIDE_MATCH],
                 ]);
             }
         }

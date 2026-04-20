@@ -96,7 +96,7 @@
     </div>
 
     <div class="kfc-card mt-8 border-red-200/60 bg-red-50/20 ring-red-500/5">
-        <h2 class="kfc-section-title text-red-900">試合を削除</h2>
+        <h2 class="kfc-section-title--danger">試合を削除</h2>
         <p class="mt-3 text-sm leading-relaxed text-zinc-700">
             紐づくチーム・参加者・釣果・順位データをすべて削除します（釣果画像ファイルも削除）。<strong>未確定の試合のみ</strong>削除できます。
         </p>

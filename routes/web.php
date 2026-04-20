@@ -115,6 +115,9 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
     Route::resource('users', UserManageController::class)->except(['show']);
 
     Route::get('catches/pending', [CatchModerationController::class, 'index'])->name('catches.pending');
+    Route::post('catches/approve-batch', [CatchModerationController::class, 'approveBatch'])->name('catches.approve-batch');
+    Route::post('catches/images/rotate-batch', [CatchModerationController::class, 'rotateImagesBatch'])
+        ->name('catches.images.rotate-batch');
     Route::post('catches/{fishCatch}/approve', [CatchModerationController::class, 'approve'])->name('catches.approve');
     Route::post('catches/{fishCatch}/reject', [CatchModerationController::class, 'reject'])->name('catches.reject');
     Route::post('catches/{fishCatch}/images/{catchImage}/rotate', [CatchModerationController::class, 'rotateImage'])

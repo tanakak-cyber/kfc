@@ -21,6 +21,9 @@ use Illuminate\View\View;
 
 class EntryController extends Controller
 {
+    /** 1回の送信で投稿できる釣果の最大件数（複数匹まとめて投稿） */
+    private const MAX_ENTRIES_PER_SUBMIT = 20;
+
     public function __construct(
         private CatchImageProcessor $images,
         private EntryCatchPhotoExifValidator $entryPhotoExif
@@ -96,45 +99,67 @@ class EntryController extends Controller
         $playerIds = $team->players->pluck('id')->all();
 
         $validated = $request->validate([
-            'player_id' => ['required', 'integer', 'in:'.implode(',', $playerIds)],
-            'length_cm' => ['required', 'numeric', 'min:0', 'max:999'],
-            'weight_g' => ['required', 'integer', 'min:0', 'max:9999'],
+            'entries' => ['required', 'array', 'min:1', 'max:'.self::MAX_ENTRIES_PER_SUBMIT],
+            'entries.*.player_id' => ['required', 'integer', 'in:'.implode(',', $playerIds)],
+            'entries.*.length_cm' => ['required', 'numeric', 'min:0', 'max:999'],
+            'entries.*.weight_g' => ['required', 'integer', 'min:0', 'max:9999'],
+        ], [], [
+            'entries' => '釣果',
+            'entries.*.player_id' => '釣った人',
+            'entries.*.length_cm' => '長さ（cm）',
+            'entries.*.weight_g' => '重さ（g）',
         ]);
 
-        $photoFiles = $this->validatedPhotoUploads($request);
-        $this->entryPhotoExif->assertAllPhotosWithinMatchWindow($team->gameMatch, $photoFiles);
+        $photoFilesByIndex = [];
+        foreach (array_keys($validated['entries']) as $idx) {
+            $key = 'entries.'.$idx.'.photos';
+            $photoFilesByIndex[$idx] = $this->validatedPhotoUploads($request, $key, $key);
+            $this->entryPhotoExif->assertAllPhotosWithinMatchWindow(
+                $team->gameMatch,
+                $photoFilesByIndex[$idx],
+                $key
+            );
+        }
 
-        return $this->withEntrySubmitLock($token, function () use ($team, $validated, $photoFiles): RedirectResponse {
+        return $this->withEntrySubmitLock($token, function () use ($team, $validated, $photoFilesByIndex): RedirectResponse {
             try {
-                DB::transaction(function () use ($team, $validated, $photoFiles): void {
-                    $catch = FishCatch::query()->create([
-                        'match_id' => $team->match_id,
-                        'team_id' => $team->id,
-                        'player_id' => (int) $validated['player_id'],
-                        'length_cm' => $validated['length_cm'],
-                        'weight_g' => (int) $validated['weight_g'],
-                        'approval_status' => CatchApprovalStatus::Pending,
-                    ]);
-
-                    foreach ($photoFiles as $sort => $file) {
-                        $path = $this->images->processAndStore($file);
-                        $catch->images()->create([
-                            'path' => $path,
-                            'sort_order' => (int) $sort,
+                DB::transaction(function () use ($team, $validated, $photoFilesByIndex): void {
+                    foreach ($validated['entries'] as $idx => $row) {
+                        $photoFiles = $photoFilesByIndex[$idx] ?? [];
+                        $catch = FishCatch::query()->create([
+                            'match_id' => $team->match_id,
+                            'team_id' => $team->id,
+                            'player_id' => (int) $row['player_id'],
+                            'length_cm' => $row['length_cm'],
+                            'weight_g' => (int) $row['weight_g'],
+                            'approval_status' => CatchApprovalStatus::Pending,
                         ]);
-                    }
 
-                    if ($catch->images()->count() === 0) {
-                        throw ValidationException::withMessages([
-                            'photos' => ['画像を1枚以上正しくアップロードしてください。'],
-                        ]);
+                        foreach ($photoFiles as $sort => $file) {
+                            $path = $this->images->processAndStore($file);
+                            $catch->images()->create([
+                                'path' => $path,
+                                'sort_order' => (int) $sort,
+                            ]);
+                        }
+
+                        if ($catch->images()->count() === 0) {
+                            throw ValidationException::withMessages([
+                                "entries.$idx.photos" => ['画像を1枚以上正しくアップロードしてください。'],
+                            ]);
+                        }
                     }
                 });
             } catch (ValidationException $e) {
                 return back()->withErrors($e->errors())->withInput();
             }
 
-            return back()->with('status', '釣果を送信しました。承認後に公開されます。');
+            $n = count($validated['entries']);
+            $msg = $n === 1
+                ? '釣果を送信しました。承認後に公開されます。'
+                : "{$n}件の釣果を送信しました。承認後に公開されます。";
+
+            return back()->with('status', $msg);
         });
     }
 
@@ -162,44 +187,65 @@ class EntryController extends Controller
         }
 
         $validated = $request->validate([
-            'length_cm' => ['required', 'numeric', 'min:0', 'max:999'],
-            'weight_g' => ['required', 'integer', 'min:0', 'max:9999'],
+            'entries' => ['required', 'array', 'min:1', 'max:'.self::MAX_ENTRIES_PER_SUBMIT],
+            'entries.*.length_cm' => ['required', 'numeric', 'min:0', 'max:999'],
+            'entries.*.weight_g' => ['required', 'integer', 'min:0', 'max:9999'],
+        ], [], [
+            'entries' => '釣果',
+            'entries.*.length_cm' => '長さ（cm）',
+            'entries.*.weight_g' => '重さ（g）',
         ]);
 
-        $photoFiles = $this->validatedPhotoUploads($request);
-        $this->entryPhotoExif->assertAllPhotosWithinMatchWindow($participant->gameMatch, $photoFiles);
+        $photoFilesByIndex = [];
+        foreach (array_keys($validated['entries']) as $idx) {
+            $key = 'entries.'.$idx.'.photos';
+            $photoFilesByIndex[$idx] = $this->validatedPhotoUploads($request, $key, $key);
+            $this->entryPhotoExif->assertAllPhotosWithinMatchWindow(
+                $participant->gameMatch,
+                $photoFilesByIndex[$idx],
+                $key
+            );
+        }
 
-        return $this->withEntrySubmitLock($token, function () use ($participant, $validated, $photoFiles): RedirectResponse {
+        return $this->withEntrySubmitLock($token, function () use ($participant, $validated, $photoFilesByIndex): RedirectResponse {
             try {
-                DB::transaction(function () use ($participant, $validated, $photoFiles): void {
-                    $catch = FishCatch::query()->create([
-                        'match_id' => $participant->match_id,
-                        'team_id' => null,
-                        'player_id' => $participant->player_id,
-                        'length_cm' => $validated['length_cm'],
-                        'weight_g' => (int) $validated['weight_g'],
-                        'approval_status' => CatchApprovalStatus::Pending,
-                    ]);
-
-                    foreach ($photoFiles as $sort => $file) {
-                        $path = $this->images->processAndStore($file);
-                        $catch->images()->create([
-                            'path' => $path,
-                            'sort_order' => (int) $sort,
+                DB::transaction(function () use ($participant, $validated, $photoFilesByIndex): void {
+                    foreach ($validated['entries'] as $idx => $row) {
+                        $photoFiles = $photoFilesByIndex[$idx] ?? [];
+                        $catch = FishCatch::query()->create([
+                            'match_id' => $participant->match_id,
+                            'team_id' => null,
+                            'player_id' => $participant->player_id,
+                            'length_cm' => $row['length_cm'],
+                            'weight_g' => (int) $row['weight_g'],
+                            'approval_status' => CatchApprovalStatus::Pending,
                         ]);
-                    }
 
-                    if ($catch->images()->count() === 0) {
-                        throw ValidationException::withMessages([
-                            'photos' => ['画像を1枚以上正しくアップロードしてください。'],
-                        ]);
+                        foreach ($photoFiles as $sort => $file) {
+                            $path = $this->images->processAndStore($file);
+                            $catch->images()->create([
+                                'path' => $path,
+                                'sort_order' => (int) $sort,
+                            ]);
+                        }
+
+                        if ($catch->images()->count() === 0) {
+                            throw ValidationException::withMessages([
+                                "entries.$idx.photos" => ['画像を1枚以上正しくアップロードしてください。'],
+                            ]);
+                        }
                     }
                 });
             } catch (ValidationException $e) {
                 return back()->withErrors($e->errors())->withInput();
             }
 
-            return back()->with('status', '釣果を送信しました。承認後に公開されます。');
+            $n = count($validated['entries']);
+            $msg = $n === 1
+                ? '釣果を送信しました。承認後に公開されます。'
+                : "{$n}件の釣果を送信しました。承認後に公開されます。";
+
+            return back()->with('status', $msg);
         });
     }
 
@@ -332,11 +378,12 @@ class EntryController extends Controller
     /**
      * photos / photos[] が 1 枚のとき単一 UploadedFile になることがあるため、常に UploadedFile のリストに揃える。
      *
+     * @param  string  $inputKey  例: photos, entries.0.photos
      * @return list<UploadedFile>
      */
-    private function normalizeUploadedPhotos(Request $request): array
+    private function normalizeUploadedPhotos(Request $request, string $inputKey = 'photos'): array
     {
-        $raw = $request->file('photos');
+        $raw = $request->file($inputKey);
         if ($raw === null) {
             return [];
         }
@@ -358,28 +405,30 @@ class EntryController extends Controller
     }
 
     /**
+     * @param  string  $errorKey  バリデーションエラー時のキー（例: entries.0.photos）
      * @return list<UploadedFile>
      */
-    private function validatedPhotoUploads(Request $request): array
+    private function validatedPhotoUploads(Request $request, string $inputKey = 'photos', ?string $errorKey = null): array
     {
-        $files = $this->normalizeUploadedPhotos($request);
+        $errorKey ??= $inputKey;
+        $files = $this->normalizeUploadedPhotos($request, $inputKey);
 
         if (count($files) < 1) {
             throw ValidationException::withMessages([
-                'photos' => ['画像を1枚以上選択してください。'],
+                $errorKey => ['画像を1枚以上選択してください。'],
             ]);
         }
 
         if (count($files) > 10) {
             throw ValidationException::withMessages([
-                'photos' => ['画像は10枚までです。'],
+                $errorKey => ['画像は10枚までです。'],
             ]);
         }
 
         foreach ($files as $file) {
             if (! $file->isValid()) {
                 throw ValidationException::withMessages([
-                    'photos' => ['画像のアップロードに失敗しました。ファイルサイズ（合計・1枚あたり）や枚数の上限をご確認ください。'],
+                    $errorKey => ['画像のアップロードに失敗しました。ファイルサイズ（合計・1枚あたり）や枚数の上限をご確認ください。'],
                 ]);
             }
 
@@ -390,7 +439,7 @@ class EntryController extends Controller
 
             if ($v->fails()) {
                 throw ValidationException::withMessages([
-                    'photos' => $v->errors()->get('_photo'),
+                    $errorKey => $v->errors()->get('_photo'),
                 ]);
             }
         }

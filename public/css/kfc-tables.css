@@ -1,0 +1,284 @@
+/**
+ * 順位表まわり（Vite 未ビルドでも効くフォールバック）
+ * 旧バンドルに残る .kfc-table-shell { overflow: hidden } が -mx-6 と相殺して左右クリップするのを防ぐ
+ */
+.kfc-table-shell {
+    overflow: visible !important;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.kfc-table-shell .kfc-link {
+    transition-property: none;
+    text-decoration: underline;
+    text-decoration-color: rgb(16 185 129 / 0.3);
+}
+
+.kfc-table-shell .kfc-link:hover,
+.kfc-table-shell .kfc-link:active {
+    color: rgb(4 120 87);
+}
+
+@media (max-width: 639.98px) {
+    .kfc-table-shell--card-bleed {
+        width: calc(100% + 3rem);
+        max-width: none;
+        margin-left: -1.5rem;
+        margin-right: -1.5rem;
+        box-sizing: border-box;
+    }
+}
+
+.kfc-table-scroll-x {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+    isolation: isolate;
+    overflow-x: auto !important;
+    overflow-y: visible;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+}
+
+.kfc-table-scroll-inner {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+@media (max-width: 639.98px) {
+    .kfc-table-scroll-inner {
+        min-width: 100%;
+    }
+}
+
+.kfc-table-inline {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+    box-sizing: border-box;
+}
+
+.kfc-table-pinned {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.kfc-table-season-standings {
+    display: table;
+    width: 100%;
+    min-width: 64rem;
+    table-layout: fixed;
+}
+
+@media (min-width: 1024px) {
+    .kfc-table-season-standings {
+        min-width: 100%;
+        table-layout: auto;
+    }
+}
+
+.kfc-table-match-standings {
+    width: 100%;
+    min-width: 52rem;
+    table-layout: fixed;
+}
+
+@media (max-width: 1023px) {
+    .kfc-table-match-standings {
+        table-layout: auto;
+    }
+}
+
+.kfc-table-breakdown {
+    width: 100%;
+    min-width: 40rem;
+    table-layout: fixed;
+}
+
+@media (min-width: 1024px) {
+    .kfc-table-breakdown {
+        min-width: 100%;
+        table-layout: auto;
+    }
+}
+
+.kfc-table-pinned tbody tr.kfc-trow td {
+    border-bottom: 1px solid #f4f4f5;
+}
+
+.kfc-table-pinned tbody tr.kfc-trow:last-child td {
+    border-bottom-width: 0;
+}
+
+.kfc-table-pinned tbody tr.kfc-trow {
+    border-bottom-width: 0 !important;
+}
+
+/* ゼブラ行（.kfc-table-shell 内の一覧表） */
+.kfc-table-shell tbody tr.kfc-trow:nth-child(odd) > td {
+    background-color: #fff;
+}
+
+.kfc-table-shell tbody tr.kfc-trow:nth-child(even) > td {
+    background-image: linear-gradient(
+        135deg,
+        #ffffff 0%,
+        rgb(240 253 250) 38%,
+        rgba(220, 252, 231, 0.42) 100%
+    );
+}
+
+/* sticky 列（順位 + 名前）— 幅は狭めて右側のスクロール領域を確保 */
+.kfc-pin-rank-th {
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    width: 3rem;
+    min-width: 3rem;
+    max-width: 3rem;
+    background: rgba(250, 250, 250, 0.95);
+    box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.1);
+}
+
+.kfc-pin-rank-td {
+    position: sticky;
+    left: 0;
+    z-index: 5;
+    width: 3rem;
+    min-width: 3rem;
+    max-width: 3rem;
+    background: #fff;
+    box-shadow: 4px 0 8px -4px rgba(0, 0, 0, 0.08);
+}
+
+.kfc-pin-name-th {
+    position: sticky;
+    left: 3rem;
+    z-index: 6;
+    min-width: 5.6rem;
+    max-width: 7.2rem;
+    background: rgba(250, 250, 250, 0.95);
+    box-shadow: 4px 0 10px -4px rgba(0, 0, 0, 0.12);
+}
+
+.kfc-pin-name-td {
+    position: sticky;
+    left: 3rem;
+    z-index: 4;
+    min-width: 5.6rem;
+    max-width: 7.2rem;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 4px 0 10px -4px rgba(0, 0, 0, 0.12);
+}
+
+.kfc-pin-name-td:not(.kfc-pin-name-td-team) {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kfc-pin-name-td a,
+.kfc-pin-solo-name-td a {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.kfc-pin-solo-name-th {
+    position: sticky;
+    left: 0;
+    z-index: 6;
+    min-width: 5.6rem;
+    max-width: 7.2rem;
+    background: rgba(250, 250, 250, 0.95);
+    box-shadow: 4px 0 10px -4px rgba(0, 0, 0, 0.12);
+}
+
+.kfc-pin-solo-name-td {
+    position: sticky;
+    left: 0;
+    z-index: 4;
+    min-width: 5.6rem;
+    max-width: 7.2rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: #fff;
+    box-shadow: 4px 0 10px -4px rgba(0, 0, 0, 0.12);
+}
+
+.kfc-pin-name-th-team {
+    min-width: 5.5rem;
+    max-width: 7rem;
+}
+
+@media (min-width: 640px) {
+    .kfc-pin-name-th-team {
+        min-width: 6rem;
+        max-width: 8rem;
+    }
+}
+
+.kfc-pin-name-td-team {
+    min-width: 5.5rem;
+    max-width: 7rem;
+    vertical-align: top;
+    overflow: visible;
+    white-space: normal;
+    word-break: break-word;
+}
+
+.kfc-match-team-name-clamp {
+    display: block;
+    max-height: 4.5em;
+    overflow: hidden;
+    word-break: break-word;
+    line-height: 1.375;
+}
+
+@media (min-width: 640px) {
+    .kfc-pin-name-td-team {
+        min-width: 6rem;
+        max-width: 8rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .kfc-table-match-standings {
+        min-width: 100%;
+        table-layout: auto;
+    }
+
+    .kfc-table-match-standings col.kfc-col-match-team {
+        width: auto !important;
+    }
+
+    .kfc-pin-name-th.kfc-pin-name-th-team,
+    .kfc-pin-name-td.kfc-pin-name-td-team {
+        max-width: none !important;
+        min-width: max-content;
+        white-space: nowrap;
+        word-break: normal;
+        overflow: visible;
+        text-overflow: unset;
+        vertical-align: middle;
+        line-height: 1.5;
+    }
+
+    .kfc-table-match-standings .kfc-match-team-name-clamp {
+        display: inline;
+        max-height: none;
+        overflow: visible;
+    }
+}
+
+/* 見出しが薄く見える旧バンドル向け: 日本語ヘッダーを読みやすく */
+thead.kfc-thead th {
+    color: rgb(63 63 70);
+    text-transform: none;
+    letter-spacing: 0.025em;
+}

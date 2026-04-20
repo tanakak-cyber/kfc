@@ -65,7 +65,12 @@ class MatchSurveyManageController extends Controller
             'dates.*' => ['required', 'date'],
             'field_names' => ['required', 'array', 'min:1'],
             'field_names.*' => ['required', 'string', 'max:255'],
-        ]);
+        ], [
+    'dates.required' => '日付を入力してください',
+    'dates.*.required' => '日付を入力してください',
+    'field_names.required' => '項目名を入力してください',
+    'field_names.*.required' => '項目名を入力してください',
+]);
 
         $survey = DB::transaction(function () use ($validated): MatchSurvey {
             $survey = MatchSurvey::query()->create([

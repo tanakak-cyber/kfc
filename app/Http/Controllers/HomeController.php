@@ -24,9 +24,9 @@ class HomeController extends Controller
         $seasonStandings = collect();
         $seasonCatchStats = collect();
         $seasonParticipationStats = collect();
-        $seasonCatchFeed = collect();
+        $seasonCatchMatchBlocks = [];
         if ($currentSeason) {
-            $seasonCatchFeed = SeasonCatchFeed::approvedForSeason($currentSeason->id);
+            $seasonCatchMatchBlocks = SeasonCatchFeed::groupedByMatchAndRank($currentSeason->id);
             $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($currentSeason->id);
             $seasonParticipationStats = SeasonPlayerParticipationStats::statsByPlayerId($currentSeason->id);
             $seasonStandings = $this->matchResults->seasonPlayerStandingModels($currentSeason);
@@ -51,7 +51,7 @@ class HomeController extends Controller
             'seasonStandings',
             'seasonCatchStats',
             'seasonParticipationStats',
-            'seasonCatchFeed',
+            'seasonCatchMatchBlocks',
             'recentMatches',
             'pastSeasons'
         ));

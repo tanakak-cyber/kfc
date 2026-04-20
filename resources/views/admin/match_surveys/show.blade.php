@@ -257,7 +257,7 @@
     @endif
 
     <div class="kfc-card mt-10 border-red-200/60 bg-red-50/20 ring-red-500/5">
-        <h2 class="kfc-section-title text-red-900">アンケートを削除</h2>
+        <h2 class="kfc-section-title--danger">アンケートを削除</h2>
         <p class="mt-3 text-sm leading-relaxed text-zinc-700">
             候補日・回答・集計データがすべて削除されます。この操作は元に戻せません。
         </p>

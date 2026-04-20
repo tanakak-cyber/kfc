@@ -28,7 +28,6 @@ class SeasonController extends Controller
     {
         $matches = GameMatch::query()
             ->where('season_id', $season->id)
-            ->with(['matchResults' => fn ($q) => $q->orderBy('rank')->with(['team', 'player'])])
             ->orderByDesc('start_datetime')
             ->get();
 
@@ -39,7 +38,7 @@ class SeasonController extends Controller
         $standings = SeasonPlayerStandings::orderByPointsCatchCountMaxWeight($standings, $seasonCatchStats);
         $standings = SeasonPlayerStandings::attachDisplayRanks($standings);
 
-        $seasonCatchFeed = SeasonCatchFeed::approvedForSeason($season->id);
+        $seasonCatchMatchBlocks = SeasonCatchFeed::groupedByMatchAndRank($season->id);
 
         return view('seasons.show', compact(
             'season',
@@ -47,7 +46,7 @@ class SeasonController extends Controller
             'standings',
             'seasonCatchStats',
             'seasonParticipationStats',
-            'seasonCatchFeed'
+            'seasonCatchMatchBlocks'
         ));
     }
 }

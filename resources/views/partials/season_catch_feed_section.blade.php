@@ -1,35 +1,101 @@
-{{-- 期待: $seasonCatchFeed (FishCatch のコレクション), 任意 $catchFeedTitle --}}
+{{-- 期待: $seasonCatchMatchBlocks（試合×順位の入れ子）、任意 $catchFeedTitle --}}
 @php
     $catchFeedTitle = $catchFeedTitle ?? '今シーズンの釣果情報';
 @endphp
 <section class="kfc-card mt-10">
     <h2 class="kfc-section-title">{{ $catchFeedTitle }}</h2>
-    <div class="mt-6 grid gap-5 sm:grid-cols-2">
-        @forelse ($seasonCatchFeed as $catch)
-            @php
-                $catchUrls = $catch->images->map(fn ($im) => asset('storage/'.$im->path))->values()->all();
-            @endphp
-            <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-md shadow-zinc-950/5 ring-1 ring-zinc-950/[0.03]">
-                @include('partials.catch_image_slider', ['urls' => $catchUrls, 'sliderId' => 'feed-catch-'.$catch->id, 'roundedTop' => true])
-                @if (count($catchUrls) === 0)
-                    <div class="flex min-h-[8rem] items-center justify-center rounded-t-2xl bg-zinc-100 text-sm text-zinc-500">写真はありません</div>
+
+    @forelse ($seasonCatchMatchBlocks as $block)
+        @php
+            $match = $block['match'];
+            $catchSections = $block['catchSections'];
+            $primarySections = [];
+            $secondarySections = [];
+            foreach ($catchSections as $section) {
+                $isPrimary = ($section['fallback_flat'] ?? false) || ($section['rank'] ?? null) === 1;
+                if ($isPrimary) {
+                    $primarySections[] = $section;
+                } else {
+                    $secondarySections[] = $section;
+                }
+            }
+            $hasSecondary = count($secondarySections) > 0;
+            $secondaryPanelId = 'kfc-feed-secondary-'.$match->id;
+        @endphp
+        <div class="mt-10 min-w-0 border-t border-zinc-100 pt-10 first:mt-6 first:border-0 first:pt-0">
+            <h3 class="kfc-subsection-title">
+                <a href="{{ route('matches.show', $match) }}" class="kfc-link-subtle hover:text-emerald-800">{{ $match->title }}</a>
+            </h3>
+            <p class="mt-1 text-sm text-zinc-500">
+                {{ $match->start_datetime->format('Y/m/d H:i') }}
+                @if ($match->field)
+                    <span class="text-zinc-400"> · </span>{{ $match->field }}
                 @endif
-                <div class="border-t border-zinc-100 p-4 text-sm">
-                    <p class="text-xs text-zinc-500">
-                        <a href="{{ route('matches.show', $catch->gameMatch) }}" class="kfc-link">{{ $catch->gameMatch->title }}</a>
-                        <span class="text-zinc-400"> · </span>{{ $catch->gameMatch->start_datetime->format('Y/m/d') }}
-                    </p>
-                    <p class="mt-2 font-semibold text-zinc-900">
-                        <a href="{{ route('players.show', $catch->player) }}" class="kfc-link">{{ $catch->player->displayLabel() }}</a>
-                        @if ($catch->team)
-                            <span class="font-normal text-zinc-500">（{{ $catch->team->name }}）</span>
-                        @endif
-                    </p>
-                    <p class="mt-1 text-zinc-600">長さ {{ $catch->length_cm }} cm / 重さ {{ $catch->weight_g }} g</p>
-                </div>
+            </p>
+
+            <div class="mt-6 flex flex-col">
+                @foreach ($primarySections as $section)
+                    @include('partials.season_catch_feed_rank_section', [
+                        'section' => $section,
+                        'showSpacer' => ! $loop->first,
+                    ])
+                @endforeach
+
+                @if ($hasSecondary)
+                    <div class="mt-6">
+                        <button
+                            type="button"
+                            class="kfc-feed-expand-lower inline-flex items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40"
+                            data-kfc-feed-expand
+                            data-kfc-feed-panel="{{ $secondaryPanelId }}"
+                            aria-expanded="false"
+                            aria-controls="{{ $secondaryPanelId }}"
+                        >
+                            2位以下の釣果を表示
+                        </button>
+                    </div>
+
+                    <div
+                        id="{{ $secondaryPanelId }}"
+                        class="kfc-feed-secondary-panel mt-6 flex hidden min-w-0 flex-col"
+                    >
+                        @foreach ($secondarySections as $section)
+                            @php
+                                $showSpacer = ! $loop->first || count($primarySections) > 0;
+                            @endphp
+                            @include('partials.season_catch_feed_rank_section', [
+                                'section' => $section,
+                                'showSpacer' => $showSpacer,
+                            ])
+                        @endforeach
+                    </div>
+                @endif
             </div>
-        @empty
-            <p class="kfc-muted sm:col-span-2">承認済みの釣果はまだありません。</p>
-        @endforelse
-    </div>
+        </div>
+    @empty
+        <p class="mt-6 kfc-muted">承認済みの釣果はまだありません。</p>
+    @endforelse
 </section>
+
+@push('scripts')
+    <script>
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-kfc-feed-expand]');
+            if (!btn) return;
+            var panelId = btn.getAttribute('data-kfc-feed-panel');
+            if (!panelId) return;
+            var panel = document.getElementById(panelId);
+            if (!panel) return;
+            var isHidden = panel.classList.contains('hidden');
+            if (isHidden) {
+                panel.classList.remove('hidden');
+                btn.setAttribute('aria-expanded', 'true');
+                btn.textContent = '2位以下を閉じる';
+            } else {
+                panel.classList.add('hidden');
+                btn.setAttribute('aria-expanded', 'false');
+                btn.textContent = '2位以下の釣果を表示';
+            }
+        });
+    </script>
+@endpush

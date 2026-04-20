@@ -48,28 +48,19 @@
         <div class="mt-6 space-y-3">
             @forelse ($matches as $m)
                 <div class="kfc-card-nested">
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <a href="{{ route('matches.show', $m) }}" class="kfc-link text-base">{{ $m->title }}</a>
                             <p class="mt-0.5 text-sm text-zinc-600">{{ $m->start_datetime->format('Y/m/d H:i') }} · {{ $m->field }}</p>
                         </div>
-                        <a href="{{ route('matches.show', $m) }}" class="kfc-link-subtle shrink-0 text-sm">詳細 →</a>
+                        <div class="flex shrink-0 flex-wrap items-center gap-2 text-sm text-zinc-600">
+                            @if ($m->isBeforeStartDatetime())
+                                <span class="kfc-badge-warn">開催前（結果は開催後に表示されます）</span>
+                            @else
+                                <a href="{{ route('matches.show', $m) }}#match-standings" class="kfc-btn-emerald text-xs sm:text-sm">試合結果を見る</a>
+                            @endif
+                        </div>
                     </div>
-                    @php
-                        $topThree = $m->matchResults->sortBy('rank')->take(3);
-                    @endphp
-                    <p class="mt-3 text-sm text-zinc-700">
-                        <span class="font-semibold text-zinc-800">上位:</span>
-                        @if ($m->isBeforeStartDatetime())
-                            <span class="text-zinc-600">開催前のため表示しません</span>
-                        @elseif ($topThree->isEmpty())
-                            —
-                        @elseif ($m->isTeamMatch())
-                            {{ $topThree->map(fn ($r) => ($r->team?->name ?? '—').'（'.$r->rank.'位）')->implode('、') }}
-                        @else
-                            {{ $topThree->map(fn ($r) => ($r->player?->displayLabel() ?? '—').'（'.$r->rank.'位）')->implode('、') }}
-                        @endif
-                    </p>
                 </div>
             @empty
                 <p class="kfc-muted">試合がありません。</p>
@@ -77,5 +68,8 @@
         </div>
     </section>
 
-    @include('partials.season_catch_feed_section', ['seasonCatchFeed' => $seasonCatchFeed])
+    @include('partials.season_catch_feed_section', [
+        'seasonCatchMatchBlocks' => $seasonCatchMatchBlocks,
+        'catchFeedTitle' => 'このシーズンの釣果情報',
+    ])
 @endsection

@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'トップ')
+@section('title')
+{{ $siteTeamName }}
+@endsection
 
 @section('content')
     <section class="relative mb-12 min-h-[220px] overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-zinc-900 via-zinc-800 to-emerald-950 text-white shadow-2xl shadow-zinc-900/40 ring-1 ring-white/10 sm:min-h-[260px] sm:px-10 lg:min-h-[300px]">
@@ -32,7 +34,7 @@
             >ブラックバス釣り大会</p>
             <h1
                 @class([
-                    'mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl',
+                    'kfc-hero-title mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl',
                     filled($siteHeroImageUrl) ? 'kfc-hero-over-image-title' : '',
                 ])
             >{{ $siteTeamName }}</h1>
@@ -82,18 +84,11 @@
                         <a href="{{ route('matches.show', $m) }}" class="kfc-link text-base">{{ $m->title }}</a>
                         <p class="mt-0.5 text-xs text-zinc-500">{{ $m->start_datetime->format('Y/m/d H:i') }} · {{ $m->field }}</p>
                     </div>
-                    <div class="text-sm text-zinc-600">
+                    <div class="flex shrink-0 flex-wrap items-center gap-2 text-sm text-zinc-600">
                         @if ($m->isBeforeStartDatetime())
                             <span class="kfc-badge-warn">開催前（結果は開催後に表示されます）</span>
                         @else
-                            @php $top = $m->matchResults->sortBy('rank')->first(); @endphp
-                            @if ($top && $m->isTeamMatch() && $top->team)
-                                <span class="kfc-badge">首位: {{ $top->team->name }}（{{ $top->total_weight }} {{ $m->catchScoringUnitLabel() }}）</span>
-                            @elseif ($top && $m->isIndividualMatch() && $top->player)
-                                <span class="kfc-badge">首位: {{ $top->player->displayLabel() }}（{{ $top->total_weight }} {{ $m->catchScoringUnitLabel() }}）</span>
-                            @else
-                                <span class="kfc-badge-warn">順位未確定</span>
-                            @endif
+                            <a href="{{ route('matches.show', $m) }}#match-standings" class="kfc-btn-emerald text-xs sm:text-sm">試合結果を見る</a>
                         @endif
                     </div>
                 </li>
@@ -104,7 +99,7 @@
     </section>
 
     @if ($currentSeason)
-        @include('partials.season_catch_feed_section', ['seasonCatchFeed' => $seasonCatchFeed])
+        @include('partials.season_catch_feed_section', ['seasonCatchMatchBlocks' => $seasonCatchMatchBlocks])
     @endif
 
     <section class="kfc-card mt-10">

@@ -4,7 +4,7 @@
 
 @section('content')
     <div class="mx-auto max-w-lg">
-        <h1 class="kfc-page-title text-xl sm:text-2xl">{{ $survey->title ?: '出欠アンケート' }}</h1>
+        <h1 class="kfc-page-title kfc-page-title--compact">{{ $survey->title ?: '出欠アンケート' }}</h1>
         <p class="kfc-muted mt-2 text-sm">{{ $survey->season->name }}</p>
 
         @if (filled($survey->description))

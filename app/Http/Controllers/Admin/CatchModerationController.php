@@ -11,6 +11,7 @@ use App\Services\CatchImageRotationService;
 use App\Services\MatchResultSyncService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\View\View;
 
@@ -43,6 +44,70 @@ class CatchModerationController extends Controller
         $this->matchResults->syncMatch($match, true);
 
         return back()->with('status', '釣果を承認しました。');
+    }
+
+    /**
+     * 一覧に表示中の未承認釣果をまとめて承認する（ページネーションの現在ページ分）。
+     *
+     * @param  array<int, int|string>  $request->catch_ids
+     */
+    public function approveBatch(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'catch_ids' => ['required', 'array', 'min:1'],
+            'catch_ids.*' => ['integer'],
+        ]);
+
+        $ids = array_values(array_unique(array_map('intval', $validated['catch_ids'])));
+
+        $catches = FishCatch::query()
+            ->whereIn('id', $ids)
+            ->where('approval_status', CatchApprovalStatus::Pending)
+            ->with('gameMatch')
+            ->orderBy('id')
+            ->get();
+
+        if ($catches->isEmpty()) {
+            return back()->withErrors(['catch' => '承認対象の未承認釣果がありません。']);
+        }
+
+        $approved = 0;
+        $skippedFinalized = 0;
+        $matchIdsToSync = [];
+
+        DB::transaction(function () use ($catches, &$approved, &$skippedFinalized, &$matchIdsToSync): void {
+            foreach ($catches as $fishCatch) {
+                $match = $fishCatch->gameMatch;
+                if ($match->is_finalized) {
+                    $skippedFinalized++;
+
+                    continue;
+                }
+                $fishCatch->update(['approval_status' => CatchApprovalStatus::Approved]);
+                $approved++;
+                $matchIdsToSync[$match->id] = true;
+            }
+        });
+
+        foreach (array_keys($matchIdsToSync) as $matchId) {
+            $match = GameMatch::query()->find($matchId);
+            if ($match !== null) {
+                $this->matchResults->syncMatch($match, true);
+            }
+        }
+
+        if ($approved === 0) {
+            return back()->withErrors(['catch' => '確定済み試合の釣果のみで、承認できませんでした。']);
+        }
+
+        $msg = $approved === 1
+            ? '1件の釣果を承認しました。'
+            : "{$approved}件の釣果を承認しました。";
+        if ($skippedFinalized > 0) {
+            $msg .= "（確定済み試合の{$skippedFinalized}件はスキップしました）";
+        }
+
+        return back()->with('status', $msg);
     }
 
     public function reject(FishCatch $fishCatch): RedirectResponse
@@ -88,6 +153,70 @@ class CatchModerationController extends Controller
         $catchImage->touch();
 
         return back()->with('status', '画像の向きを更新しました。');
+    }
+
+    /**
+     * 未承認釣果の画像を、クライアントで累積した 90° 単位の回転を一括で保存する。
+     * rotations[catch_image_id] = 時計回りの四半回転数の合計（負も可、サーバ側で mod 4 を適用）。
+     */
+    public function rotateImagesBatch(Request $request): RedirectResponse
+    {
+        $rotations = $request->input('rotations', []);
+        if (! is_array($rotations) || $rotations === []) {
+            return back()->withErrors(['catch' => '回転の変更がありません。']);
+        }
+
+        $processed = 0;
+        $errors = [];
+
+        foreach ($rotations as $imageId => $netQuarters) {
+            $imageId = (int) $imageId;
+            $netQuarters = (int) $netQuarters;
+            if ($netQuarters === 0) {
+                continue;
+            }
+
+            $catchImage = CatchImage::query()->find($imageId);
+            if (! $catchImage) {
+                continue;
+            }
+
+            $fishCatch = $catchImage->fishCatch;
+            if ($fishCatch->approval_status !== CatchApprovalStatus::Pending) {
+                $errors[] = '未承認の釣果のみ向きを変更できます。';
+
+                continue;
+            }
+
+            $match = $this->matchOrAbort($fishCatch);
+            if ($match->is_finalized) {
+                $errors[] = '確定済み試合の釣果は変更できません。';
+
+                continue;
+            }
+
+            try {
+                $this->imageRotation->rotateQuarterTurns($catchImage->path, $netQuarters);
+                $catchImage->touch();
+                $processed++;
+            } catch (\RuntimeException $e) {
+                $errors[] = $e->getMessage();
+            }
+        }
+
+        if ($processed === 0) {
+            $message = $errors !== []
+                ? implode(' ', array_unique($errors))
+                : '適用する回転がありません。';
+
+            return back()->withErrors(['catch' => $message]);
+        }
+
+        $msg = $processed === 1
+            ? '1件の画像の向きを更新しました。'
+            : "{$processed}件の画像の向きを更新しました。";
+
+        return back()->with('status', $msg);
     }
 
     public function updateMeasurements(Request $request, FishCatch $fishCatch): RedirectResponse

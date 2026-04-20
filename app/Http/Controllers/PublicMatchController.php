@@ -7,6 +7,8 @@ use App\Enums\CatchScoringBasis;
 use App\Models\FishCatch;
 use App\Models\GameMatch;
 use App\Services\MatchResultSyncService;
+use App\Support\CatchSectionsByRank;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 class PublicMatchController extends Controller
@@ -38,6 +40,8 @@ class PublicMatchController extends Controller
 
         $catches = $catchesQuery->get();
 
+        $catchSections = CatchSectionsByRank::build($gameMatch, $catches);
+
         $playerBonusTotals = $gameMatch->matchPlayerBonusPoints
             ->groupBy('player_id')
             ->map(fn ($rows) => (int) $rows->sum('points'));
@@ -46,7 +50,7 @@ class PublicMatchController extends Controller
 
         return view('matches.show', compact(
             'gameMatch',
-            'catches',
+            'catchSections',
             'playerBonusTotals',
             'teamMatchPlayerBreakdown'
         ));
