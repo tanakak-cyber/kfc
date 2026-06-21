@@ -244,11 +244,13 @@ class GameMatchManageController extends Controller
                 'min:'.GameMatch::CATCH_SCORING_LIMIT_MIN,
                 'max:'.GameMatch::CATCH_SCORING_LIMIT_MAX,
             ],
+            'require_capture_datetime' => ['nullable', 'boolean'],
         ]);
 
         $data['match_type'] = MatchType::from($data['match_type']);
         $data['catch_scoring_basis'] = CatchScoringBasis::from($data['catch_scoring_basis']);
         $data['catch_scoring_limit'] = (int) $data['catch_scoring_limit'];
+        $data['require_capture_datetime'] = $request->boolean('require_capture_datetime');
 
         return $data;
     }
@@ -274,11 +276,13 @@ class GameMatchManageController extends Controller
                 'min:'.GameMatch::CATCH_SCORING_LIMIT_MIN,
                 'max:'.GameMatch::CATCH_SCORING_LIMIT_MAX,
             ],
+            'require_capture_datetime' => ['nullable', 'boolean'],
         ]);
 
         $data['match_type'] = MatchType::from($data['match_type']);
         $data['catch_scoring_basis'] = CatchScoringBasis::from($data['catch_scoring_basis']);
         $data['catch_scoring_limit'] = (int) $data['catch_scoring_limit'];
+        $data['require_capture_datetime'] = $request->boolean('require_capture_datetime');
 
         return $data;
     }

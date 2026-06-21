@@ -25,6 +25,7 @@ class GameMatch extends Model
     protected $attributes = [
         'catch_scoring_basis' => 'weight',
         'catch_scoring_limit' => 3,
+        'require_capture_datetime' => true,
     ];
 
     protected $fillable = [
@@ -40,6 +41,7 @@ class GameMatch extends Model
         'rules',
         'catch_scoring_basis',
         'catch_scoring_limit',
+        'require_capture_datetime',
         'is_finalized',
     ];
 
@@ -53,6 +55,7 @@ class GameMatch extends Model
             'survey_rsvp_snapshot' => 'array',
             'catch_scoring_basis' => CatchScoringBasis::class,
             'catch_scoring_limit' => 'integer',
+            'require_capture_datetime' => 'boolean',
         ];
     }
 
@@ -254,5 +257,16 @@ class GameMatch extends Model
         }
 
         return $n;
+    }
+
+    /**
+     * 撮影日時の無い画像を投稿不可にするか。
+     * 未マイグレーション／null の場合は従来動作（必須＝true）。
+     */
+    public function requiresCaptureDatetime(): bool
+    {
+        $v = $this->getAttribute('require_capture_datetime');
+
+        return $v === null ? true : (bool) $v;
     }
 }

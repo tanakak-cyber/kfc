@@ -87,3 +87,18 @@
     >
     <p class="mt-1 text-xs text-zinc-500">{{ \App\Models\GameMatch::CATCH_SCORING_LIMIT_MIN }}〜{{ \App\Models\GameMatch::CATCH_SCORING_LIMIT_MAX }}本。大きい順にこの本数だけ合計します。</p>
 </div>
+<div>
+    <span class="kfc-label">撮影日時のチェック</span>
+    <input type="hidden" name="require_capture_datetime" value="0">
+    <label class="mt-3 inline-flex cursor-pointer items-start gap-2 text-sm">
+        <input
+            type="checkbox"
+            name="require_capture_datetime"
+            value="1"
+            class="mt-0.5 text-emerald-600 focus:ring-emerald-500/40"
+            @checked(old('require_capture_datetime', isset($gameMatch) ? ($gameMatch->requiresCaptureDatetime() ? 1 : 0) : 1))
+        >
+        <span>画像データに撮影日時が含まれないものは投稿できないようにする</span>
+    </label>
+    <p class="mt-1 text-xs text-zinc-500">ONのときは従来どおり、撮影日時（EXIF）が無い画像は投稿不可。OFFにすると撮影日時が無い画像も受け付けます（撮影日時がある画像は引き続き試合時間内かを確認します）。</p>
+</div>

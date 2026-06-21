@@ -27,46 +27,69 @@ final class EntryCatchPhotoExifValidator
      */
     public function assertAllPhotosWithinMatchWindow(GameMatch $match, array $files, string $errorKey = 'photos'): void
     {
-        if ($match->start_datetime === null) {
+        $requireCaptureDatetime = $match->requiresCaptureDatetime();
+
+        // 撮影日時必須なのに試合開始日時が無い場合は判定不能 → 従来どおり弾く。
+        // 任意（チェックOFF）なら、開始日時が無くても受け付ける。
+        if ($requireCaptureDatetime && $match->start_datetime === null) {
             throw ValidationException::withMessages([
                 $errorKey => [self::MSG_NO_EXIF],
             ]);
         }
 
         foreach ($files as $file) {
-            $this->assertUploadedFileWithinMatchWindow($match, $file, $errorKey);
+            $this->assertUploadedFileWithinMatchWindow($match, $file, $errorKey, $requireCaptureDatetime);
         }
     }
 
-    private function assertUploadedFileWithinMatchWindow(GameMatch $match, UploadedFile $file, string $errorKey = 'photos'): void
+    private function assertUploadedFileWithinMatchWindow(GameMatch $match, UploadedFile $file, string $errorKey, bool $requireCaptureDatetime): void
     {
+        // 撮影日時が読み取れない画像の扱い。
+        // 必須（チェックON）: 例外で弾く。任意（チェックOFF）: そのまま受け付ける（true を返す）。
+        $handleMissingCaptureDatetime = function () use ($requireCaptureDatetime, $errorKey): bool {
+            if ($requireCaptureDatetime) {
+                throw ValidationException::withMessages([
+                    $errorKey => [self::MSG_NO_EXIF],
+                ]);
+            }
+
+            return true;
+        };
+
         if (! function_exists('exif_read_data')) {
-            throw ValidationException::withMessages([
-                $errorKey => [self::MSG_NO_EXIF],
-            ]);
+            if ($handleMissingCaptureDatetime()) {
+                return;
+            }
         }
 
         $path = $file->getRealPath() ?: $file->path();
         if ($path === false || $path === '' || ! is_readable($path)) {
-            throw ValidationException::withMessages([
-                $errorKey => [self::MSG_NO_EXIF],
-            ]);
+            if ($handleMissingCaptureDatetime()) {
+                return;
+            }
         }
 
         $exif = @exif_read_data($path);
         if ($exif === false || empty($exif['DateTimeOriginal'])) {
-            throw ValidationException::withMessages([
-                $errorKey => [self::MSG_NO_EXIF],
-            ]);
+            if ($handleMissingCaptureDatetime()) {
+                return;
+            }
         }
 
         $raw = trim((string) $exif['DateTimeOriginal']);
         try {
             $photoTime = Carbon::createFromFormat(self::EXIF_DATETIME_FORMAT, $raw, self::TZ);
         } catch (\Throwable) {
-            throw ValidationException::withMessages([
-                $errorKey => [self::MSG_NO_EXIF],
-            ]);
+            if ($handleMissingCaptureDatetime()) {
+                return;
+            }
+        }
+
+        // ここまで来たら撮影日時を取得できている。試合時間内かを確認する
+        // （必須/任意に関わらず、撮影日時がある画像は試合時間内チェックの対象）。
+        // 任意モードで開始日時が無い場合はチェック不能なため受け付ける。
+        if ($match->start_datetime === null) {
+            return;
         }
 
         $start = $match->start_datetime->copy()->timezone(self::TZ);
