@@ -36,6 +36,45 @@ document.addEventListener('click', (e) => {
     }
 });
 
+/** 公開ヘッダー: スマホはハンバーガーでナビ開閉（管理者ログイン含む） */
+(function initPublicMobileNav() {
+    const toggle = document.getElementById('kfc-nav-toggle');
+    const menu = document.getElementById('kfc-nav-menu');
+    if (!toggle || !menu) {
+        return;
+    }
+
+    const iconMenu = toggle.querySelector('[data-kfc-nav-icon-menu]');
+    const iconClose = toggle.querySelector('[data-kfc-nav-icon-close]');
+    const mq = window.matchMedia('(min-width: 640px)');
+
+    function setOpen(open) {
+        menu.classList.toggle('hidden', !open);
+        if (iconMenu) {
+            iconMenu.classList.toggle('hidden', open);
+        }
+        if (iconClose) {
+            iconClose.classList.toggle('hidden', !open);
+        }
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'メニューを閉じる' : 'メニューを開く');
+    }
+
+    toggle.addEventListener('click', () => {
+        setOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    menu.querySelectorAll('a, button').forEach((el) => {
+        el.addEventListener('click', () => setOpen(false));
+    });
+
+    mq.addEventListener('change', (e) => {
+        if (e.matches) {
+            setOpen(false);
+        }
+    });
+})();
+
 /** 管理画面: スマホはハンバーガーでサイドメニュー開閉 */
 (function initAdminMobileNav() {
     const toggle = document.getElementById('kfc-admin-menu-toggle');
