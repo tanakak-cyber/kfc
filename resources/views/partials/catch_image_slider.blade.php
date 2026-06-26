@@ -10,7 +10,7 @@
         window.kfcCatchGalleries = window.kfcCatchGalleries || {};
         window.kfcCatchGalleries[@js($trackId)] = @js($urls);
     </script>
-    <div class="relative aspect-video w-full overflow-hidden bg-black {{ $roundClass }}">
+    <div class="relative aspect-video w-full overflow-hidden bg-[#0d1714] {{ $roundClass }}">
         <div
             id="{{ $trackId }}"
             class="flex h-full w-full snap-x snap-mandatory overflow-x-auto scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -19,10 +19,10 @@
             aria-label="釣果写真のスライダー"
         >
             @foreach ($urls as $idx => $url)
-                <div class="relative h-full min-w-full shrink-0 snap-center bg-black">
+                <div class="relative h-full min-w-full shrink-0 snap-center bg-[#0d1714]">
                     <button
                         type="button"
-                        class="flex h-full w-full cursor-zoom-in items-center justify-center border-0 bg-black p-0"
+                        class="flex h-full w-full cursor-zoom-in items-center justify-center border-0 bg-[#0d1714] p-0"
                         data-kfc-lightbox="{{ $trackId }}"
                         data-kfc-lightbox-index="{{ $idx }}"
                     >

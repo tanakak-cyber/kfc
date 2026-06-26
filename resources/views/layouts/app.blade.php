@@ -8,23 +8,31 @@
     @endif
     <title>@yield('title', $headerSiteTitle)</title>
     @include('partials.favicon')
+    @hasSection('hero')
+        {{-- 水中背景・バス透かしを先読みして描画の遅延を防ぐ --}}
+        <link rel="preload" as="image" href="{{ asset('images/water-bg.webp') }}?v=9" media="(min-width: 769px)">
+        <link rel="preload" as="image" href="{{ asset('images/water-bg-mobile.webp') }}?v=9" media="(max-width: 768px)">
+        <link rel="preload" as="image" href="{{ asset('images/fish-watermark.webp') }}?v=4">
+    @endif
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     {{-- 順位表: 未ビルドの古い app.css に残る overflow 対策（public/css はそのまま配信） --}}
     <link rel="stylesheet" href="{{ asset('css/kfc-tables.css') }}?v=21" />
 </head>
-<body class="min-h-screen bg-zinc-100 text-zinc-900 antialiased">
+<body class="@hasSection('hero') kfc-has-hero @endif min-h-screen kfc-app-bg text-zinc-900 antialiased">
     <div class="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div class="absolute -left-32 top-0 h-96 w-96 rounded-full bg-emerald-400/15 blur-3xl"></div>
-        <div class="absolute -right-24 top-48 h-80 w-80 rounded-full bg-teal-400/10 blur-3xl"></div>
-        <div class="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-zinc-300/20 blur-3xl"></div>
+        @hasSection('hero')
+            <div class="kfc-side-vignette"></div>
+        @endif
+        <div class="absolute -left-32 top-0 h-96 w-96 rounded-full bg-emerald-700/10 blur-3xl"></div>
+        <div class="absolute -right-24 top-48 h-80 w-80 rounded-full bg-teal-700/10 blur-3xl"></div>
     </div>
-    <header class="sticky top-0 z-40 border-b border-zinc-200/80 bg-white/80 backdrop-blur-md backdrop-saturate-150">
-        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
-            <a href="{{ route('home') }}" class="group flex items-center gap-2">
-                <span class="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md shadow-zinc-900/10 ring-1 ring-zinc-200/80">
+    <header class="kfc-header sticky top-0 z-40 border-b-[3px] border-amber-400/85 shadow-lg shadow-emerald-950/30 backdrop-blur-md">
+        <div class="mx-auto flex max-w-[1120px] flex-wrap items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
+            <a href="{{ route('home') }}" class="group flex items-center gap-3">
+                <span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-white shadow-md shadow-black/20 ring-1 ring-amber-300/50">
                     <img src="{{ $siteLogoUrl }}" alt="" class="h-full w-full object-contain p-1">
                 </span>
-                <span class="text-base font-bold tracking-tight text-zinc-900">{{ $headerSiteTitle }}</span>
+                <span class="text-xl font-black tracking-wide text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] sm:text-2xl">{{ $headerSiteTitle }}</span>
             </a>
             <nav class="flex flex-wrap items-center gap-1 sm:gap-2">
                 <a href="{{ route('seasons.index') }}" class="kfc-nav-pill">シーズン</a>
@@ -40,7 +48,10 @@
             </nav>
         </div>
     </header>
-    <main class="mx-auto max-w-6xl px-4 py-10 sm:px-6">
+    @hasSection('hero')
+        @yield('hero')
+    @endif
+    <main class="@hasSection('hero') kfc-main--overlap @else mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:py-12 @endif">
         @if (session('status'))
             <div class="kfc-alert-success" role="status">
                 {{ session('status') }}
@@ -57,8 +68,10 @@
         @endif
         @yield('content')
     </main>
-    <footer class="border-t border-zinc-200/80 bg-white/60 py-8 text-center text-xs text-zinc-500 backdrop-blur-sm">
-        <p>&copy; {{ date('Y') }} {{ $headerSiteTitle }}</p>
+    <footer class="kfc-footer mt-16 border-t-4 border-amber-400/85 px-6 py-12 text-center">
+        <p class="text-2xl font-black tracking-wide text-amber-300 drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)] sm:text-3xl">{{ $headerSiteTitle }}</p>
+        <p class="mt-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-200/70">Bass Fishing Tournament</p>
+        <p class="mt-4 text-xs text-emerald-100/70">&copy; {{ date('Y') }} {{ $headerSiteTitle }}</p>
     </footer>
     <x-image-lightbox />
     @stack('scripts')

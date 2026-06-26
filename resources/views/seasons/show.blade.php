@@ -31,7 +31,9 @@
     @endif
 
     <section class="kfc-card mb-10">
-        <h2 class="kfc-section-title">個人順位</h2>
+        <div class="kfc-section-head">
+            <h2 class="kfc-section-title">個人順位</h2>
+        </div>
         @if ($standings->isEmpty())
             <p class="kfc-muted mt-3">確定済み試合のポイント集計後に表示されます。</p>
         @else
@@ -44,22 +46,27 @@
     </section>
 
     <section class="kfc-card">
-        <h2 class="kfc-section-title">試合結果一覧</h2>
-        <div class="mt-6 space-y-3">
+        <div class="kfc-section-head">
+            <h2 class="kfc-section-title">試合結果一覧</h2>
+        </div>
+        <div class="mt-2 flex flex-col gap-3">
             @forelse ($matches as $m)
-                <div class="kfc-card-nested">
-                    <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                        <div>
-                            <a href="{{ route('matches.show', $m) }}" class="kfc-link text-base">{{ $m->title }}</a>
-                            <p class="mt-0.5 text-sm text-zinc-600">{{ $m->start_datetime->format('Y/m/d H:i') }} · {{ $m->field }}</p>
-                        </div>
-                        <div class="flex shrink-0 flex-wrap items-center gap-2 text-sm text-zinc-600">
-                            @if ($m->isBeforeStartDatetime())
-                                <span class="kfc-badge-warn">開催前（結果は開催後に表示されます）</span>
-                            @else
-                                <a href="{{ route('matches.show', $m) }}#match-standings" class="kfc-btn-emerald text-xs sm:text-sm">試合結果を見る</a>
+                <div class="kfc-match-event">
+                    <div class="min-w-0">
+                        <a href="{{ route('matches.show', $m) }}" class="kfc-link text-base font-bold sm:text-lg">{{ $m->title }}</a>
+                        <p class="mt-1.5 flex flex-wrap items-center gap-2">
+                            <span class="kfc-date-badge">{{ $m->start_datetime->format('Y/m/d H:i') }}</span>
+                            @if ($m->field)
+                                <span class="text-xs text-zinc-500">{{ $m->field }}</span>
                             @endif
-                        </div>
+                        </p>
+                    </div>
+                    <div class="flex shrink-0 flex-wrap items-center gap-2 text-sm text-zinc-600">
+                        @if ($m->isBeforeStartDatetime())
+                            <span class="kfc-badge-warn">開催前（結果は開催後に表示されます）</span>
+                        @else
+                            <a href="{{ route('matches.show', $m) }}#match-standings" class="kfc-btn-emerald text-xs sm:text-sm">試合結果を見る</a>
+                        @endif
                     </div>
                 </div>
             @empty

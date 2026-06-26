@@ -50,7 +50,12 @@
                     $isSeasonTableMaxWeight = $maxWtFloat !== null && $seasonStandingsMaxWeight > 0
                         && abs(round($maxWtFloat, 1) - round($seasonStandingsMaxWeight, 1)) < 0.01;
                 @endphp
-                <tr class="kfc-trow">
+                <tr @class([
+                    'kfc-trow',
+                    'kfc-rank-1' => (int) $row->display_rank === 1,
+                    'kfc-rank-2' => (int) $row->display_rank === 2,
+                    'kfc-rank-3' => (int) $row->display_rank === 3,
+                ])>
                     <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold text-zinc-900 sm:px-2.5 sm:py-3">
                         <x-rank-medal :rank="$row->display_rank" />
                     </td>
@@ -70,7 +75,7 @@
                             @endif
                         </span>
                     </td>
-                    <td class="whitespace-nowrap px-3 py-2.5 font-medium tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($row->total_points) }} pt</td>
+                    <td class="whitespace-nowrap px-3 py-2.5 sm:px-4 sm:py-3"><span class="kfc-point-badge">{{ \App\Support\PublicDisplayNumber::upToOneDecimal($row->total_points) }} pt</span></td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ $matchesPlayed }}</td>
                     <td class="whitespace-nowrap px-3 py-2.5 tabular-nums text-zinc-800 sm:px-4 sm:py-3">{{ data_get($p, 'blank_matches', 0) }}</td>
                     <td @class([

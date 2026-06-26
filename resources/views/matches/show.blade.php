@@ -99,7 +99,9 @@
     @endif
 
     <section id="match-standings" class="kfc-card mt-8 scroll-mt-24 sm:scroll-mt-28">
-        <h2 class="kfc-section-title">{{ $gameMatch->catchScoringStandingsHeading() }}</h2>
+        <div class="kfc-section-head">
+            <h2 class="kfc-section-title">{{ $gameMatch->catchScoringStandingsHeading() }}</h2>
+        </div>
         @if (! $gameMatch->is_finalized)
             <div class="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
                 <p class="font-semibold text-amber-900">この試合は未確定です</p>
@@ -163,7 +165,12 @@
                                 }
                             }
                         @endphp
-                        <tr class="kfc-trow">
+                        <tr @class([
+                            'kfc-trow',
+                            'kfc-rank-1' => (int) $r->rank === 1,
+                            'kfc-rank-2' => (int) $r->rank === 2,
+                            'kfc-rank-3' => (int) $r->rank === 3,
+                        ])>
                             <td class="kfc-pin-rank-td whitespace-nowrap px-2 py-2.5 font-semibold sm:px-2.5 sm:py-3">
                                 <x-rank-medal :rank="$r->rank" />
                             </td>
@@ -277,7 +284,9 @@
     </section>
 
     <section class="kfc-card mt-8">
-        <h2 class="kfc-section-title">釣果（承認済み）</h2>
+        <div class="kfc-section-head">
+            <h2 class="kfc-section-title">釣果（承認済み）</h2>
+        </div>
         @if ($gameMatch->isTeamMatch())
             <p class="mt-3 text-sm leading-relaxed text-zinc-600">順位（チーム）ごとに、承認済みの釣果写真を表示します。</p>
         @else
@@ -301,14 +310,17 @@
                             @php
                                 $catchUrls = $catch->images->map(fn ($im) => asset('storage/'.$im->path))->values()->all();
                             @endphp
-                            <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-md shadow-zinc-950/5 ring-1 ring-zinc-950/[0.03]">
+                            <div class="kfc-catch-card">
                                 @include('partials.catch_image_slider', ['urls' => $catchUrls, 'sliderId' => 'catch-'.$catch->id, 'roundedTop' => true])
-                                <div class="border-t border-zinc-100 p-4 text-sm">
-                                    <p class="font-semibold text-zinc-900">{{ $catch->player->displayLabel() }}</p>
+                                <div class="border-t border-emerald-100/70 p-4 text-sm">
+                                    <p class="text-base font-bold text-zinc-900">{{ $catch->player->displayLabel() }}</p>
                                     @if ($catch->team)
-                                        <p class="mt-0.5 text-xs text-zinc-500">{{ $catch->team->name }}</p>
+                                        <p class="mt-0.5 text-xs font-medium text-zinc-500">{{ $catch->team->name }}</p>
                                     @endif
-                                    <p class="mt-1 text-zinc-600">長さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->length_cm) }} cm / 重さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->weight_g) }} g</p>
+                                    <div class="mt-2.5 flex flex-wrap gap-2">
+                                        <span class="kfc-stat-chip"><span class="text-emerald-600">📏</span> {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->length_cm) }} cm</span>
+                                        <span class="kfc-stat-chip"><span class="text-amber-500">⚖️</span> {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->weight_g) }} g</span>
+                                    </div>
                                 </div>
                             </div>
                         @empty

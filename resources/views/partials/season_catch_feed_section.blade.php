@@ -2,8 +2,10 @@
 @php
     $catchFeedTitle = $catchFeedTitle ?? '今シーズンの釣果情報';
 @endphp
-<section class="kfc-card mt-10">
-    <h2 class="kfc-section-title">{{ $catchFeedTitle }}</h2>
+<section class="kfc-card kfc-card--bass kfc-card--bass-faint mt-10">
+    <div class="kfc-section-head">
+        <h2 class="kfc-section-title">{{ $catchFeedTitle }}</h2>
+    </div>
 
     @forelse ($seasonCatchMatchBlocks as $block)
         @php
@@ -22,16 +24,19 @@
             $hasSecondary = count($secondarySections) > 0;
             $secondaryPanelId = 'kfc-feed-secondary-'.$match->id;
         @endphp
-        <div class="mt-10 min-w-0 border-t border-zinc-100 pt-10 first:mt-6 first:border-0 first:pt-0">
-            <h3 class="kfc-subsection-title">
-                <a href="{{ route('matches.show', $match) }}" class="kfc-link-subtle hover:text-emerald-800">{{ $match->title }}</a>
-            </h3>
-            <p class="mt-1 text-sm text-zinc-500">
-                {{ $match->start_datetime->format('Y/m/d H:i') }}
-                @if ($match->field)
-                    <span class="text-zinc-400"> · </span>{{ $match->field }}
-                @endif
-            </p>
+        <div class="mt-12 min-w-0 first:mt-6">
+            <div class="kfc-match-block-head">
+                <h3 class="flex items-center gap-2 pl-2 text-base font-extrabold tracking-tight text-emerald-950 sm:text-lg">
+                    <span class="inline-block h-2.5 w-2.5 shrink-0 rotate-45 rounded-[2px] bg-gradient-to-br from-emerald-500 to-teal-600" aria-hidden="true"></span>
+                    <a href="{{ route('matches.show', $match) }}" class="hover:text-emerald-800 hover:underline">{{ $match->title }}</a>
+                </h3>
+                <p class="mt-1.5 flex flex-wrap items-center gap-2 pl-2">
+                    <span class="kfc-date-badge">{{ $match->start_datetime->format('Y/m/d H:i') }}</span>
+                    @if ($match->field)
+                        <span class="text-xs text-zinc-500">{{ $match->field }}</span>
+                    @endif
+                </p>
+            </div>
 
             <div class="mt-6 flex flex-col">
                 @foreach ($primarySections as $section)

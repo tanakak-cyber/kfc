@@ -13,19 +13,22 @@
             @php
                 $catchUrls = $catch->images->map(fn ($im) => asset('storage/'.$im->path))->values()->all();
             @endphp
-            <div class="overflow-hidden rounded-2xl border border-zinc-200/80 bg-white shadow-md shadow-zinc-950/5 ring-1 ring-zinc-950/[0.03]">
+            <div class="kfc-catch-card">
                 @include('partials.catch_image_slider', ['urls' => $catchUrls, 'sliderId' => 'feed-catch-'.$catch->id, 'roundedTop' => true])
                 @if (count($catchUrls) === 0)
-                    <div class="flex min-h-[8rem] items-center justify-center rounded-t-2xl bg-zinc-100 text-sm text-zinc-500">写真はありません</div>
+                    <div class="flex min-h-[8rem] items-center justify-center rounded-t-2xl bg-emerald-50 text-sm text-zinc-500">写真はありません</div>
                 @endif
-                <div class="border-t border-zinc-100 p-4 text-sm">
-                    <p class="font-semibold text-zinc-900">
+                <div class="border-t border-emerald-100/70 p-4 text-sm">
+                    <p class="text-base font-bold text-zinc-900">
                         <a href="{{ route('players.show', $catch->player) }}" class="kfc-link">{{ $catch->player->displayLabel() }}</a>
                         @if ($catch->team)
-                            <span class="font-normal text-zinc-500">（{{ $catch->team->name }}）</span>
+                            <span class="text-xs font-medium text-zinc-500">（{{ $catch->team->name }}）</span>
                         @endif
                     </p>
-                    <p class="mt-1 text-zinc-600">長さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->length_cm) }} cm / 重さ {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->weight_g) }} g</p>
+                    <div class="mt-2.5 flex flex-wrap gap-2">
+                        <span class="kfc-stat-chip"><span class="text-emerald-600">📏</span> {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->length_cm) }} cm</span>
+                        <span class="kfc-stat-chip"><span class="text-amber-500">⚖️</span> {{ \App\Support\PublicDisplayNumber::upToOneDecimal($catch->weight_g) }} g</span>
+                    </div>
                 </div>
             </div>
         @empty

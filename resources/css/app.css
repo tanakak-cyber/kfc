@@ -12,18 +12,217 @@
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
 
+@layer base {
+    /* 全幅の水面/装飾レイヤー(100vw)が横スクロールを生まないように。sticky には影響しない */
+    html {
+        overflow-x: hidden;
+    }
+
+    /* 大会ページ用カラートークン（深いグリーン＋ゴールドアクセント＋水面トーン） */
+    :root {
+        --kfc-deep-green: #003f34;
+        --kfc-deep-green-2: #002c25;
+        --kfc-primary: #006b55;
+        --kfc-primary-light: #00896b;
+        --kfc-primary-dark: #003f32;
+        --kfc-primary-darker: #00271f;
+        --kfc-mint: #e8f8f2;
+        --kfc-mint-2: #d6f3eb;
+        --kfc-accent: #f4b63f;
+        --kfc-accent-soft: #ffd54a;
+        --kfc-gold-dark: #c8861d;
+        --kfc-bronze: #b86b2c;
+        --kfc-silver: #b7c0c5;
+        --kfc-orange: #e97b2c;
+        --kfc-bg: #f4faf8;
+        --kfc-card: #ffffff;
+        --kfc-text: #1d2b2f;
+        --kfc-muted: #667579;
+        --kfc-border: rgba(0, 80, 65, 0.14);
+        --kfc-shadow-soft: 0 12px 35px rgba(0, 45, 35, 0.1);
+        --kfc-shadow-card: 0 18px 42px rgba(0, 45, 35, 0.16);
+        --kfc-shadow-strong: 0 28px 60px rgba(0, 25, 20, 0.28);
+    }
+
+    /* ページ全体: 上は深いグリーン(ヒーロー帯)→下は淡い水面ミント。白カードが主役で映える構成 */
+    .kfc-app-bg {
+        position: relative;
+        background-color: var(--kfc-bg);
+        background-image:
+            radial-gradient(circle at 12% 0%, rgba(0, 130, 100, 0.16), transparent 30%),
+            radial-gradient(circle at 88% 5%, rgba(244, 182, 63, 0.1), transparent 26%),
+            linear-gradient(180deg, #e4f4ee 0%, #edf9f5 28%, #f4fbf9 65%, #eef8f4 100%);
+        background-repeat: no-repeat;
+        color: var(--kfc-text);
+    }
+
+    /*
+     * ホーム（全幅ヒーローあり）専用: ヒーロー直下〜コンテンツ背景にかけて
+     * 濃い青緑→ミント→白へフェードする「水面・湖」感のある背景。
+     * ヒーロー以外のページは可読性優先で淡いミントのまま。
+     */
+    .kfc-app-bg.kfc-has-hero {
+        background-image:
+            radial-gradient(circle at 82% 9%, rgba(244, 182, 63, 0.08), transparent 24%),
+            linear-gradient(180deg, #003f34 0%, #004f3f 15%, #1f5d4f 22%, #cdece4 34%, #eaf8f4 58%, #f3faf7 78%, #eef7f3 100%);
+    }
+
+    /* うっすら水面っぽい波ライン（重くしない・操作を妨げない） */
+    .kfc-app-bg::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image: repeating-linear-gradient(
+            to bottom,
+            rgba(0, 80, 65, 0.035) 0px,
+            rgba(0, 80, 65, 0.035) 1px,
+            transparent 1px,
+            transparent 30px
+        );
+        mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 92%, transparent 100%);
+        -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 22%, black 92%, transparent 100%);
+    }
+
+    /*
+     * ホーム専用: ヒーロー下〜コンテンツ背景に「実写の水面」を薄く敷く。
+     * body 幅(=ほぼ100vw)いっぱい・白オーバーレイで可読性を確保・上下フェード。
+     * 中央だけ濃い四角が出ないよう、コンテンツ幅ではなくページ全幅に敷く。
+     */
+    .kfc-app-bg.kfc-has-hero::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 230px;
+        height: 1500px;
+        background-image:
+            linear-gradient(
+                180deg,
+                rgba(0, 40, 33, 0.10) 0%,
+                rgba(0, 60, 49, 0.05) 24%,
+                rgba(235, 247, 242, 0.16) 70%,
+                rgba(243, 250, 247, 0) 100%
+            ),
+            url('/images/water-bg.webp?v=9');
+        background-size: cover, cover;
+        background-position: center top, left top;
+        background-repeat: no-repeat, no-repeat;
+        opacity: 0.92;
+        pointer-events: none;
+        z-index: -1;
+        mask-image: linear-gradient(180deg, black 0%, black 82%, transparent 100%);
+        -webkit-mask-image: linear-gradient(180deg, black 0%, black 82%, transparent 100%);
+    }
+
+    @media (max-width: 768px) {
+        .kfc-app-bg.kfc-has-hero::after {
+            top: 120px;
+            height: 1010px;
+            opacity: 0.92;
+            /* スマホ専用の縦シーン（顔→湖底の沈み木）。画像下端は沈み木＋下地グラデで自然にフェード */
+            background-image:
+                linear-gradient(
+                    180deg,
+                    rgba(0, 40, 33, 0.18) 0%,
+                    rgba(0, 50, 40, 0.05) 22%,
+                    rgba(235, 247, 242, 0.08) 60%,
+                    rgba(243, 250, 247, 0) 100%
+                ),
+                url('/images/water-bg-mobile.webp?v=9'),
+                linear-gradient(
+                    180deg,
+                    #0a3f31 0%,
+                    #073026 40%,
+                    #0a3a2e 60%,
+                    rgba(225, 244, 238, 0) 86%
+                );
+            background-size: cover, 116% auto, cover;
+            background-position: center top, 44% 110px, center top;
+            background-repeat: no-repeat, no-repeat, no-repeat;
+            /* 画像の下端（沈み木）を長めのフェードで溶かし、切れ目を消す */
+            mask-image: linear-gradient(180deg, black 0%, black 52%, rgba(0,0,0,0.5) 78%, transparent 96%);
+            -webkit-mask-image: linear-gradient(180deg, black 0%, black 52%, rgba(0,0,0,0.5) 78%, transparent 96%);
+        }
+    }
+}
+
 @layer components {
     .kfc-card {
         /* min-w-0: 内側の横スクロール（overflow-x）が親幅に縛られるようにする */
-        @apply min-w-0 rounded-2xl border border-zinc-200/80 bg-white p-6 shadow-lg shadow-zinc-950/5 ring-1 ring-zinc-950/[0.03];
+        /* overflow-hidden は付けない（card-bleed の table が負マージンで枠外へ出るため） */
+        @apply relative min-w-0 rounded-[22px] border border-[color:var(--kfc-border)] bg-white/95 p-6 ring-1 ring-emerald-950/[0.02] sm:p-7;
+        box-shadow: var(--kfc-shadow-card);
+    }
+
+    /* カード上部のグリーン→ゴールドのアクセント帯（角丸に追従） */
+    .kfc-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 7px;
+        border-top-left-radius: 22px;
+        border-top-right-radius: 22px;
+        background-image: linear-gradient(90deg, var(--kfc-primary) 0%, var(--kfc-primary-light) 30%, var(--kfc-mint-2) 62%, transparent 100%);
+        z-index: 1;
+    }
+
+    /* バスの薄い透かし（カード右下）— 主張しすぎないトーナメントの世界観 */
+    .kfc-card--bass {
+        overflow: hidden;
+    }
+
+    .kfc-card--bass::after {
+        content: '';
+        position: absolute;
+        right: -20px;
+        bottom: -14px;
+        width: 240px;
+        height: 160px;
+        background-image: url('/images/fish-watermark.webp?v=4');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: right bottom;
+        opacity: 0.8;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    /* 透かしの上に本文を確実に乗せる */
+    .kfc-card--bass > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    /* 釣果情報カードはさらに控えめに */
+    .kfc-card--bass-faint::after {
+        width: 260px;
+        height: 170px;
+        right: -36px;
+        bottom: 8px;
+        opacity: 0.8;
+    }
+
+    @media (max-width: 768px) {
+        .kfc-card--bass::after {
+            width: 168px;
+            height: 112px;
+            right: -18px;
+            bottom: -10px;
+            opacity: 0.8;
+        }
     }
 
     .kfc-card-sm {
-        @apply rounded-2xl border border-zinc-200/70 bg-white p-4 shadow-md shadow-zinc-950/5 ring-1 ring-zinc-950/[0.02];
+        @apply rounded-2xl border border-emerald-900/[0.08] bg-white p-4 ring-1 ring-emerald-950/[0.02];
+        box-shadow: 0 1px 2px rgba(0, 39, 31, 0.04), 0 10px 26px -20px rgba(0, 63, 50, 0.24);
     }
 
     .kfc-card-nested {
-        @apply rounded-xl border border-zinc-100 bg-zinc-50/60 p-4 transition hover:border-zinc-200/80 hover:bg-white;
+        @apply rounded-2xl border border-emerald-100/80 bg-emerald-50/40 p-4 transition hover:border-emerald-200/80 hover:bg-white;
     }
 
     /* 見出し階層: h1 ページタイトル — 下にエメラルドのアクセントライン */
@@ -33,7 +232,7 @@
 
     .kfc-page-title::after {
         content: '';
-        @apply mt-3 block h-[3px] w-16 rounded-full bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 sm:w-20;
+        @apply mt-3 block h-[3px] w-16 rounded-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-amber-400 sm:w-20;
     }
 
     .kfc-page-title--center {
@@ -53,21 +252,179 @@
         @apply mt-2.5 w-14 sm:w-16;
     }
 
+    /* トップヒーロー: 浮き上がる影 */
+    .kfc-hero {
+        box-shadow: 0 24px 50px rgba(0, 40, 32, 0.22), 0 8px 18px rgba(0, 40, 32, 0.12);
+    }
+
+    /* ===== 全幅ヒーロー（参考画像: 画像が上部の主役・角丸なし） ===== */
+    .kfc-hero-full {
+        position: relative;
+        isolation: isolate;
+        overflow: hidden;
+        min-height: 360px;
+        background-image: linear-gradient(120deg, #04261f 0%, #063d30 58%, #0a5440 100%);
+        /* 下端を透明へフェードし、背後の水中背景へ自然に溶け込ませる（境目をなじませる） */
+        mask-image: linear-gradient(180deg, black 0%, black 74%, transparent 100%);
+        -webkit-mask-image: linear-gradient(180deg, black 0%, black 74%, transparent 100%);
+    }
+
+    @media (width >= 1024px) {
+        .kfc-hero-full {
+            min-height: 700px;
+        }
+    }
+
+    .kfc-hero-bg {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+    }
+
+    .kfc-hero-bg img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .kfc-hero-overlay {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        pointer-events: none;
+        /* 緑被せは控えめに（左下のみ文字可読のため少し濃いめ） */
+        background-image:
+            linear-gradient(90deg, rgba(0, 36, 29, 0.58) 0%, rgba(0, 50, 40, 0.28) 48%, rgba(0, 64, 50, 0.03) 100%),
+            linear-gradient(180deg, rgba(0, 48, 38, 0.05) 0%, rgba(0, 38, 30, 0.02) 38%, rgba(0, 34, 27, 0.32) 100%);
+    }
+
+    .kfc-hero-inner {
+        position: relative;
+        z-index: 2;
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 68px 1.5rem 96px;
+        color: #fff;
+    }
+
+    @media (max-width: 768px) {
+        .kfc-hero-inner {
+            padding: 50px 1.25rem 84px;
+        }
+    }
+
+
+    .kfc-hero-eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--kfc-accent);
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.65);
+    }
+
+    .kfc-hero-eyebrow::before {
+        content: '';
+        display: inline-block;
+        width: 26px;
+        height: 2px;
+        border-radius: 2px;
+        background-color: var(--kfc-accent);
+    }
+
+    .kfc-hero-h1 {
+        margin-top: 0.6rem;
+        font-size: clamp(54px, 9vw, 108px);
+        line-height: 0.96;
+        font-weight: 900;
+        letter-spacing: 0.02em;
+        text-shadow: 0 8px 30px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.7);
+    }
+
+    .kfc-hero-lead {
+        margin-top: 1.1rem;
+        max-width: 38rem;
+        font-size: clamp(13px, 1.35vw, 16px);
+        line-height: 1.75;
+        color: rgba(255, 255, 255, 0.94);
+        text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+    }
+
+    .kfc-hero-season {
+        display: inline-flex;
+        align-items: center;
+        margin-top: 1.3rem;
+        border: 1px solid var(--kfc-accent);
+        color: var(--kfc-accent);
+        border-radius: 999px;
+        padding: 0.5rem 1.15rem;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        background-color: rgba(0, 0, 0, 0.28);
+    }
+
+    /* ヒーローに重なる本文ラッパー（参考画像の立体感） */
+    .kfc-main--overlap {
+        position: relative;
+        z-index: 2;
+        margin-left: auto;
+        margin-right: auto;
+        /* スマホはヒーロー下に水中バスの帯を見せるため重なりを浅くする */
+        margin-top: 2.5rem;
+        max-width: 1120px;
+        padding: 0 1rem 4rem;
+    }
+
+    @media (min-width: 640px) {
+        .kfc-main--overlap {
+            margin-top: -4rem;
+            padding: 0 1.5rem 4.5rem;
+        }
+    }
+
+
     /* トップヒーローのメインタイトル（kfc-page-title とは別レイアウト） */
     .kfc-hero-title::after {
         content: '';
-        @apply mt-4 block h-[3px] w-16 rounded-full bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400 opacity-95 sm:mt-5 sm:w-20;
+        @apply mt-4 block h-1 w-20 rounded-full bg-gradient-to-r from-amber-300 via-amber-400 to-emerald-400 opacity-95 sm:mt-5 sm:w-24;
     }
 
     .kfc-hero-title.kfc-hero-over-image-title::after {
-        background-image: linear-gradient(to right, rgb(167 243 208), rgb(94 234 212), rgb(103 232 249));
+        background-image: linear-gradient(to right, rgb(253 224 71), rgb(245 180 0), rgb(52 211 153));
         opacity: 1;
-        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.45);
+        box-shadow: 0 1px 8px rgba(0, 0, 0, 0.5);
     }
 
-    /* h2 セクション — 左アクセント＋淡いグラデ背景でカード内でも区切りがはっきり */
+    /* セクション見出しブロック（英字ラベル＋日本語タイトル） */
+    .kfc-section-head {
+        @apply mb-5 flex flex-col gap-1.5;
+    }
+
+    /* 英字サブラベル（装飾）— 小さな縦バー＋ゴールド寄りのアクセント */
+    .kfc-eyebrow {
+        @apply inline-flex items-center gap-2 text-[11px] font-extrabold uppercase tracking-[0.18em] text-emerald-700/90;
+    }
+
+    .kfc-eyebrow::before {
+        content: '';
+        @apply inline-block h-3.5 w-1 rounded-full;
+        background-image: linear-gradient(to bottom, var(--kfc-accent), var(--kfc-primary));
+    }
+
+    /* h2 セクション — 参考画像準拠: 濃緑テキスト＋左の小さなグリーン→ゴールドのバー */
     .kfc-section-title {
-        @apply border-l-[3px] border-emerald-500 bg-gradient-to-r from-emerald-50/90 via-emerald-50/40 to-transparent py-2 pl-4 pr-3 text-xl font-bold leading-snug tracking-tight text-zinc-800 sm:text-2xl;
+        @apply flex items-center gap-2.5 text-xl font-black leading-snug tracking-tight text-emerald-950 sm:text-[1.55rem];
+    }
+
+    .kfc-section-title::before {
+        content: '';
+        @apply inline-block h-6 w-[5px] shrink-0 rounded-full sm:h-7;
+        background-image: linear-gradient(to bottom, var(--kfc-primary-light), var(--kfc-accent));
     }
 
     /* 危険操作・警告セクション用 h2（削除など）— .kfc-section-title と同じ枠組みで色だけ差し替え */
@@ -96,20 +453,88 @@
      */
     .kfc-catch-photo-grid {
         display: grid;
-        gap: 1.25rem;
-        grid-template-columns: minmax(0, 1fr);
+        gap: 0.9rem;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
-    @media (min-width: 640px) {
+    @media (max-width: 419.98px) {
         .kfc-catch-photo-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: minmax(0, 1fr);
         }
     }
 
     @media (min-width: 768px) {
         .kfc-catch-photo-grid {
+            gap: 1rem;
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
+    }
+
+    @media (min-width: 1024px) {
+        .kfc-catch-photo-grid {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+
+    @media (min-width: 1280px) {
+        .kfc-catch-photo-grid {
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+        }
+    }
+
+    /* 釣果写真カード: ホバーで上品に浮き上がる */
+    .kfc-catch-card {
+        @apply overflow-hidden rounded-2xl border border-emerald-900/[0.08] bg-white ring-1 ring-emerald-950/[0.03];
+        box-shadow: 0 1px 2px rgba(0, 39, 31, 0.04), 0 12px 28px -20px rgba(0, 63, 50, 0.3);
+        transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+
+    .kfc-catch-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 39, 31, 0.08), 0 22px 40px -22px rgba(0, 63, 50, 0.45);
+    }
+
+    /* 釣果カードの長さ・重さバッジ */
+    .kfc-stat-chip {
+        @apply inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-900 ring-1 ring-emerald-600/15;
+    }
+
+    /* 試合結果一覧: イベント行カード */
+    .kfc-match-event {
+        @apply flex flex-col gap-3 rounded-2xl border border-[color:var(--kfc-border)] bg-white/90 p-4 transition sm:flex-row sm:items-center sm:justify-between sm:p-5;
+        box-shadow: 0 4px 14px -8px rgba(0, 45, 35, 0.25);
+    }
+
+    .kfc-match-event:hover {
+        transform: translateY(-2px);
+        border-color: rgba(0, 137, 107, 0.3);
+        box-shadow: 0 12px 26px -12px rgba(0, 63, 50, 0.32);
+    }
+
+    /* 日付などの控えめバッジ */
+    .kfc-date-badge {
+        @apply inline-flex items-center gap-1.5 rounded-full bg-emerald-50/80 px-2.5 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-600/15;
+    }
+
+    /* 釣果セクションの試合ブロック見出し（薄いグリーン背景＋フック風アイコン） */
+    .kfc-match-block-head {
+        @apply relative overflow-hidden rounded-2xl border border-[color:var(--kfc-border)] px-4 py-3.5 sm:px-5;
+        background-image: linear-gradient(120deg, rgba(0, 107, 85, 0.1), rgba(0, 137, 107, 0.04) 55%, rgba(244, 182, 63, 0.07));
+    }
+
+    .kfc-match-block-head::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 5px;
+        background-image: linear-gradient(to bottom, var(--kfc-primary), var(--kfc-accent));
+    }
+
+    /* 優勝チームなどのトロフィー帯 */
+    .kfc-trophy-line {
+        @apply inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-900 ring-1 ring-amber-400/40;
     }
 
     .kfc-muted {
@@ -117,7 +542,7 @@
     }
 
     .kfc-link {
-        @apply font-medium text-emerald-700 underline-offset-2 decoration-emerald-600/30 transition hover:text-emerald-800 hover:underline;
+        @apply font-semibold text-emerald-800 underline-offset-2 decoration-emerald-700/30 transition hover:text-emerald-900 hover:underline;
     }
 
     .kfc-link-subtle {
@@ -137,19 +562,43 @@
     }
 
     .kfc-btn-primary {
-        @apply inline-flex items-center justify-center rounded-xl bg-zinc-900 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-zinc-950/20 transition hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500;
+        @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600;
+        background-color: var(--kfc-primary-dark);
+        box-shadow: 0 8px 20px -10px rgba(0, 39, 31, 0.7);
+    }
+
+    .kfc-btn-primary:hover {
+        background-color: var(--kfc-primary);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 26px -12px rgba(0, 39, 31, 0.65);
     }
 
     .kfc-btn-emerald {
-        @apply inline-flex items-center justify-center rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-emerald-950/20 transition hover:bg-emerald-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500;
+        @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600;
+        background-color: var(--kfc-primary);
+        box-shadow: 0 8px 20px -10px rgba(0, 63, 50, 0.7);
+    }
+
+    .kfc-btn-emerald:hover {
+        background-color: var(--kfc-primary-light);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px -12px rgba(0, 63, 50, 0.6);
     }
 
     .kfc-btn-amber {
-        @apply inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white shadow-md shadow-amber-950/20 transition hover:bg-amber-700 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500;
+        @apply inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold text-emerald-950 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-500;
+        background-color: var(--kfc-accent);
+        box-shadow: 0 8px 20px -10px rgba(245, 180, 0, 0.7);
+    }
+
+    .kfc-btn-amber:hover {
+        background-color: var(--kfc-accent-soft);
+        transform: translateY(-1px);
+        box-shadow: 0 14px 28px -12px rgba(245, 180, 0, 0.6);
     }
 
     .kfc-btn-sky {
-        @apply inline-flex items-center justify-center rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-sm font-semibold text-sky-900 shadow-sm transition hover:bg-sky-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-500;
+        @apply inline-flex items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 px-5 py-2.5 text-sm font-semibold text-emerald-900 shadow-sm transition hover:bg-emerald-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-500;
     }
 
     .kfc-table-shell {
@@ -282,8 +731,80 @@
         );
     }
 
+    /* 1〜3位の特別装飾（左から淡いカラーグラデ。ゴールド/シルバー/ブロンズ） */
+    .kfc-table-shell tbody tr.kfc-rank-1 > td {
+        background-color: #fff;
+        background-image: linear-gradient(90deg, rgba(244, 182, 63, 0.22), rgba(255, 255, 255, 0) 42%);
+    }
+
+    .kfc-table-shell tbody tr.kfc-rank-2 > td {
+        background-color: #fff;
+        background-image: linear-gradient(90deg, rgba(176, 190, 197, 0.22), rgba(255, 255, 255, 0) 42%);
+    }
+
+    .kfc-table-shell tbody tr.kfc-rank-3 > td {
+        background-color: #fff;
+        background-image: linear-gradient(90deg, rgba(205, 127, 50, 0.18), rgba(255, 255, 255, 0) 42%);
+    }
+
+    /* 左固定セル（不透明が必要）はソリックなカラーで揃える */
+    .kfc-table-shell tbody tr.kfc-rank-1 > td.kfc-pin-rank-td,
+    .kfc-table-shell tbody tr.kfc-rank-1 > td.kfc-pin-name-td,
+    .kfc-table-shell tbody tr.kfc-rank-1 > td.kfc-pin-solo-name-td {
+        background-image: none;
+        background-color: #fdf4da;
+    }
+
+    .kfc-table-shell tbody tr.kfc-rank-2 > td.kfc-pin-rank-td,
+    .kfc-table-shell tbody tr.kfc-rank-2 > td.kfc-pin-name-td,
+    .kfc-table-shell tbody tr.kfc-rank-2 > td.kfc-pin-solo-name-td {
+        background-image: none;
+        background-color: #eef1f3;
+    }
+
+    .kfc-table-shell tbody tr.kfc-rank-3 > td.kfc-pin-rank-td,
+    .kfc-table-shell tbody tr.kfc-rank-3 > td.kfc-pin-name-td,
+    .kfc-table-shell tbody tr.kfc-rank-3 > td.kfc-pin-solo-name-td {
+        background-image: none;
+        background-color: #f7ecdd;
+    }
+
+    /* 1〜3位は名前を一段強く */
+    .kfc-table-shell tbody tr.kfc-rank-1 .kfc-link,
+    .kfc-table-shell tbody tr.kfc-rank-2 .kfc-link,
+    .kfc-table-shell tbody tr.kfc-rank-3 .kfc-link {
+        @apply font-extrabold text-emerald-950;
+    }
+
+    /* 行ホバー: 淡いゴールドでハイライト（左固定セルも揃える） */
+    .kfc-table-shell tbody tr.kfc-trow:hover > td {
+        background-image: none;
+        background-color: #fff7e0;
+        transition: background-color 0.14s ease;
+    }
+
+    .kfc-table-shell tbody tr.kfc-trow:hover > td.kfc-pin-rank-td,
+    .kfc-table-shell tbody tr.kfc-trow:hover > td.kfc-pin-name-td,
+    .kfc-table-shell tbody tr.kfc-trow:hover > td.kfc-pin-solo-name-td {
+        background-image: none;
+        background-color: #fff7e0;
+    }
+
+    /* 行をゆったり（順位表の可読性アップ） */
+    .kfc-table-season-standings tbody td,
+    .kfc-table-match-standings tbody td {
+        padding-top: 0.85rem;
+        padding-bottom: 0.85rem;
+    }
+
+    /* ポイントのバッジ表示 */
+    .kfc-point-badge {
+        @apply inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-1 text-sm font-extrabold tabular-nums text-emerald-900 ring-1 ring-emerald-600/20;
+    }
+
     .kfc-thead {
-        @apply border-b border-zinc-700 bg-black text-xs font-semibold tracking-wide text-white;
+        @apply border-b border-emerald-950 text-xs font-semibold tracking-wide text-white;
+        background-image: linear-gradient(to bottom, #00543f, #003f32);
     }
 
     .kfc-trow {
@@ -292,7 +813,7 @@
 
     /* 横スクロール時も順位・名前列が見えるよう左固定（overflow-x 内の table 用） */
     .kfc-pin-rank-th {
-        @apply sticky left-0 z-[6] w-[3rem] min-w-[3rem] max-w-[3rem] bg-black text-center text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)];
+        @apply sticky left-0 z-[6] w-[3rem] min-w-[3rem] max-w-[3rem] bg-[#00543f] text-center text-white shadow-[4px_0_8px_-4px_rgba(0,0,0,0.1)];
     }
 
     .kfc-pin-rank-td {
@@ -300,7 +821,7 @@
     }
 
     .kfc-pin-name-th {
-        @apply sticky left-[3rem] z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-black text-white shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
+        @apply sticky left-[3rem] z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-[#00543f] text-white shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
     }
 
     .kfc-pin-name-td {
@@ -318,7 +839,7 @@
 
     /* 選手別の付与: チーム列なし・先頭の「選手」だけ左固定（left は 0） */
     .kfc-pin-solo-name-th {
-        @apply sticky left-0 z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-black text-white shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
+        @apply sticky left-0 z-[6] min-w-[5.6rem] max-w-[7.2rem] bg-[#00543f] text-white shadow-[4px_0_10px_-4px_rgba(0,0,0,0.12)];
     }
 
     .kfc-pin-solo-name-td {
@@ -392,12 +913,84 @@
         @apply rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-4 text-sm font-medium text-amber-950 shadow-sm ring-1 ring-amber-500/10;
     }
 
+    /* ヘッダー: 濃いグリーン基調＋上部ゴールドライン */
+    .kfc-header {
+        background-image: linear-gradient(90deg, rgba(0, 47, 38, 0.97), rgba(0, 56, 45, 0.96) 55%, rgba(0, 36, 29, 0.97));
+    }
+
+    /* 左右の暗い水面ビネット（中央の白カードを引き立てる） */
+    .kfc-side-vignette {
+        position: absolute;
+        inset: 0;
+        background-image: linear-gradient(
+            90deg,
+            rgba(0, 45, 38, 0.24) 0%,
+            rgba(0, 45, 38, 0.04) 20%,
+            rgba(0, 45, 38, 0) 50%,
+            rgba(0, 45, 38, 0.04) 80%,
+            rgba(0, 45, 38, 0.24) 100%
+        );
+    }
+
+    /* フッター: 濃いグリーン＋上ゴールドライン＋水面のにじみ */
+    .kfc-footer {
+        position: relative;
+        overflow: hidden;
+        color: #fff;
+        background-image:
+            radial-gradient(circle at 20% 28%, rgba(0, 137, 107, 0.28), transparent 32%),
+            radial-gradient(circle at 82% 30%, rgba(244, 182, 63, 0.12), transparent 30%),
+            linear-gradient(180deg, #003f34 0%, #00271f 100%);
+    }
+
+    /* フッター左側の大きめバス透かし（濃緑背景に映えるよう白シルエット化） */
+    .kfc-footer::before {
+        content: '';
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+        top: 16px;
+        bottom: 16px;
+        width: 360px;
+        background-image: url('/images/fish-silhouette.webp?v=4');
+        background-repeat: no-repeat;
+        background-size: contain;
+        background-position: center center;
+        opacity: 0.8;
+        pointer-events: none;
+        z-index: 0;
+    }
+
+    .kfc-footer > * {
+        position: relative;
+        z-index: 1;
+    }
+
+    @media (max-width: 768px) {
+        .kfc-footer::before {
+            width: 200px;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 14px;
+            bottom: 14px;
+            opacity: 0.8;
+        }
+    }
+
     .kfc-nav-pill {
-        @apply rounded-full px-3 py-1.5 text-sm font-medium text-zinc-600 transition hover:bg-zinc-100 hover:text-zinc-900;
+        @apply inline-flex min-h-[38px] items-center whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-semibold text-emerald-50/90 transition hover:bg-white/10 hover:text-white sm:px-3.5;
     }
 
     .kfc-nav-pill-active {
-        @apply rounded-full bg-zinc-900 px-3 py-1.5 text-sm font-semibold text-white shadow-sm;
+        @apply inline-flex min-h-[38px] items-center whitespace-nowrap rounded-full px-3 py-2 text-sm font-bold text-white ring-1 ring-amber-300/30 transition sm:px-4;
+        background-image: linear-gradient(to bottom, #0aa37c, #046b53);
+        box-shadow: 0 8px 18px -10px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+    }
+
+    .kfc-nav-pill-active:hover {
+        transform: translateY(-1px);
+        background-image: linear-gradient(to bottom, #12b88c, #0a8062);
+        box-shadow: 0 12px 22px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
     }
 
     /* メインビジュアル上の文字（Tailwind の任意クラスに頼らず常に効かせる） */
