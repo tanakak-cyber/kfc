@@ -116,6 +116,49 @@
         -webkit-mask-image: linear-gradient(180deg, black 0%, black 82%, transparent 100%);
     }
 
+    /*
+     * ヒーローの無いページ（シーズン/試合/個人など）にもトップ同様の
+     * 水中バス背景を敷く。固定配置＝短い/長いページでもズレず、薄めの
+     * 白オーバーレイで本文の可読性を確保する。
+     */
+    .kfc-app-bg:not(.kfc-has-hero)::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        pointer-events: none;
+        background-image:
+            linear-gradient(
+                180deg,
+                rgba(236, 248, 243, 0.88) 0%,
+                rgba(236, 248, 243, 0.72) 24%,
+                rgba(238, 249, 244, 0.64) 50%,
+                rgba(242, 250, 246, 0.82) 82%,
+                rgba(244, 251, 247, 0.94) 100%
+            ),
+            url('/images/water-bg.webp?v=9');
+        background-size: cover, cover;
+        background-position: center top, center 26%;
+        background-repeat: no-repeat, no-repeat;
+    }
+
+    @media (max-width: 768px) {
+        .kfc-app-bg:not(.kfc-has-hero)::after {
+            background-image:
+                linear-gradient(
+                    180deg,
+                    rgba(236, 248, 243, 0.86) 0%,
+                    rgba(236, 248, 243, 0.7) 22%,
+                    rgba(238, 249, 244, 0.6) 48%,
+                    rgba(242, 250, 246, 0.82) 82%,
+                    rgba(244, 251, 247, 0.94) 100%
+                ),
+                url('/images/water-bg-mobile.webp?v=9');
+            background-size: cover, cover;
+            background-position: center top, center 16%;
+        }
+    }
+
     @media (max-width: 768px) {
         .kfc-app-bg.kfc-has-hero::after {
             top: 120px;
