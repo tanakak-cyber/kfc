@@ -17,7 +17,7 @@ final class SeasonPlayerCatchStats
     {
         return FishCatch::query()
             ->where('approval_status', CatchApprovalStatus::Approved)
-            ->whereHas('gameMatch', fn ($q) => $q->where('season_id', $seasonId))
+            ->whereHas('gameMatch', fn ($q) => $q->where('season_id', $seasonId)->where('is_finalized', true))
             ->groupBy('player_id')
             ->selectRaw('player_id, COUNT(*) as season_catch_count, MAX(length_cm) as season_max_length_cm, MAX(weight_g) as season_max_weight_g')
             ->get()

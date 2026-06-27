@@ -20,6 +20,7 @@ final class SeasonCatchFeed
             ->select('catches.*')
             ->join('matches', 'matches.id', '=', 'catches.match_id')
             ->where('matches.season_id', $seasonId)
+            ->where('matches.is_finalized', true)
             ->where('catches.approval_status', CatchApprovalStatus::Approved)
             ->orderByDesc('matches.start_datetime')
             ->orderByDesc('catches.id')
@@ -38,6 +39,7 @@ final class SeasonCatchFeed
             ->select('catches.*')
             ->join('matches', 'matches.id', '=', 'catches.match_id')
             ->where('matches.season_id', $seasonId)
+            ->where('matches.is_finalized', true)
             ->where('catches.approval_status', CatchApprovalStatus::Approved)
             ->orderByDesc('matches.start_datetime')
             ->orderByDesc('catches.id')
@@ -53,6 +55,7 @@ final class SeasonCatchFeed
         $matches = GameMatch::query()
             ->whereIn('id', $byMatchId->keys())
             ->where('season_id', $seasonId)
+            ->where('is_finalized', true)
             ->with([
                 'matchResults' => fn ($q) => $q->orderBy('rank')->with(['team', 'player']),
             ])

@@ -16,7 +16,8 @@ class PlayerProfileController extends Controller
     {
         $approvedQuery = FishCatch::query()
             ->where('player_id', $player->id)
-            ->where('approval_status', CatchApprovalStatus::Approved);
+            ->where('approval_status', CatchApprovalStatus::Approved)
+            ->whereHas('gameMatch', fn ($q) => $q->where('is_finalized', true));
 
         $totalCatches = (clone $approvedQuery)->count();
         $maxLength = (clone $approvedQuery)->max('length_cm');
@@ -26,6 +27,7 @@ class PlayerProfileController extends Controller
         $catchGroups = FishCatch::query()
             ->where('player_id', $player->id)
             ->where('approval_status', CatchApprovalStatus::Approved)
+            ->whereHas('gameMatch', fn ($q) => $q->where('is_finalized', true))
             ->with(['gameMatch.season', 'team'])
             ->get()
             ->groupBy('match_id');
@@ -48,6 +50,7 @@ class PlayerProfileController extends Controller
 
         foreach (MatchResult::query()
             ->where('player_id', $player->id)
+            ->whereHas('gameMatch', fn ($q) => $q->where('is_finalized', true))
             ->with(['gameMatch.season'])
             ->get() as $mr) {
             $mid = (int) $mr->match_id;
@@ -65,6 +68,7 @@ class PlayerProfileController extends Controller
             foreach (MatchResult::query()
                 ->whereNotNull('team_id')
                 ->whereIn('team_id', $teamIds)
+                ->whereHas('gameMatch', fn ($q) => $q->where('is_finalized', true))
                 ->with(['gameMatch.season'])
                 ->get() as $mr) {
                 $mid = (int) $mr->match_id;
@@ -107,6 +111,7 @@ class PlayerProfileController extends Controller
         $playerCatches = FishCatch::query()
             ->where('player_id', $player->id)
             ->where('approval_status', CatchApprovalStatus::Approved)
+            ->whereHas('gameMatch', fn ($q) => $q->where('is_finalized', true))
             ->with(['gameMatch.season', 'team', 'images'])
             ->get()
             ->sortByDesc(fn (FishCatch $c) => ($c->gameMatch->start_datetime->timestamp * 1_000_000) + $c->id)

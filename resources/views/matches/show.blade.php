@@ -104,16 +104,15 @@
         </div>
         @if (! $gameMatch->is_finalized)
             <div class="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/60 px-4 py-3 text-sm text-amber-950">
-                <p class="font-semibold text-amber-900">この試合は未確定です</p>
+                <p class="font-semibold text-amber-900">結果は確定後に公開されます</p>
                 <p class="mt-1 leading-relaxed text-amber-950/90">
-                    トップページ・シーズン詳細の「個人順位」は<strong>確定済み試合だけ</strong>を集計しています。ここに表示されている順位・ポイントは、確定前でも再計算結果として表示されますが、シーズン合計にはまだ含まれません。
+                    この試合はまだ確定していません。管理者が釣果を確認して<strong>試合を確定</strong>すると、順位・ポイント・釣果写真がここに公開され、シーズン成績にも反映されます。
                 </p>
             </div>
         @else
             <p class="mt-3 text-sm leading-relaxed text-zinc-600">
                 シーズンの個人順位は、同じルール（チーム戦はメンバー全員にチーム順位分＋個人の追加ポイント）で<strong>確定済み試合</strong>を合算した値です。
             </p>
-        @endif
         @if ($gameMatch->isTeamMatch())
             <p class="mt-3 text-sm leading-relaxed text-zinc-600">
                 下の表の「ポイント」は<strong>チーム単位の順位ポイント</strong>です。各選手の「この試合での合計」は、その下の「選手別の付与」表で確認できます（個人戦と同様に順位分＋追加ポイント）。
@@ -281,8 +280,10 @@
                 </ul>
             </div>
         @endif
+        @endif
     </section>
 
+    @if ($gameMatch->is_finalized)
     <section class="kfc-card mt-8">
         <div class="kfc-section-head">
             <h2 class="kfc-section-title">釣果（承認済み）</h2>
@@ -337,4 +338,5 @@
             @endforeach
         </div>
     </section>
+    @endif
 @endsection

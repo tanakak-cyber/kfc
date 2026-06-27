@@ -64,6 +64,8 @@
                     <div class="flex shrink-0 flex-wrap items-center gap-2 text-sm text-zinc-600">
                         @if ($m->isBeforeStartDatetime())
                             <span class="kfc-badge-warn">開催前（結果は開催後に表示されます）</span>
+                        @elseif (! $m->is_finalized)
+                            <span class="kfc-badge-warn">結果は確定後に公開されます</span>
                         @else
                             <a href="{{ route('matches.show', $m) }}#match-standings" class="kfc-btn-emerald text-xs sm:text-sm">試合結果を見る</a>
                         @endif
