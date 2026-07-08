@@ -8,38 +8,76 @@ use Illuminate\Support\Collection;
 final class SeasonPlayerStandings
 {
     /**
-     * ポイント降順 → 釣果数降順 → 最大重量（g）降順 → player_id 昇順。
+     * 全順位ロジック共通の並び順（順位表・自動チーム作成で統一）。
+     *   1. 対象シーズンの合計ポイント 降順
+     *   2. シーズン内での最大重量（g）降順
+     *   3. シーズン通算釣果数 降順
+     *   （最終タイブレークは id 昇順で決定的にする）
+     */
+    public static function compareStanding(
+        int $pointsA,
+        float $maxWeightA,
+        int $catchCountA,
+        int $idA,
+        int $pointsB,
+        float $maxWeightB,
+        int $catchCountB,
+        int $idB,
+    ): int {
+        $c = $pointsB <=> $pointsA;
+        if ($c !== 0) {
+            return $c;
+        }
+
+        $c = $maxWeightB <=> $maxWeightA;
+        if ($c !== 0) {
+            return $c;
+        }
+
+        $c = $catchCountB <=> $catchCountA;
+        if ($c !== 0) {
+            return $c;
+        }
+
+        return $idA <=> $idB;
+    }
+
+    /**
+     * 合計ポイント降順 → シーズン内最大重量（g）降順 → シーズン通算釣果数降順 → player_id 昇順。
      *
      * @param  Collection<int, SeasonPlayerPoint>  $standings
      * @param  Collection<int, array{catch_count: int, max_length_cm: string|null, max_weight_g: string|null}>  $catchStatsByPlayerId
      * @return Collection<int, SeasonPlayerPoint>
      */
-    public static function orderByPointsCatchCountMaxWeight(Collection $standings, Collection $catchStatsByPlayerId): Collection
+    public static function orderByPointsMaxWeightCatchCount(Collection $standings, Collection $catchStatsByPlayerId): Collection
     {
         return $standings->sort(function (SeasonPlayerPoint $a, SeasonPlayerPoint $b) use ($catchStatsByPlayerId): int {
-            $pc = $b->total_points <=> $a->total_points;
-            if ($pc !== 0) {
-                return $pc;
-            }
+            $statsA = $catchStatsByPlayerId->get($a->player_id);
+            $statsB = $catchStatsByPlayerId->get($b->player_id);
 
-            $ca = (int) data_get($catchStatsByPlayerId->get($a->player_id), 'catch_count', 0);
-            $cb = (int) data_get($catchStatsByPlayerId->get($b->player_id), 'catch_count', 0);
-            $cc = $cb <=> $ca;
-            if ($cc !== 0) {
-                return $cc;
-            }
-
-            $wa = data_get($catchStatsByPlayerId->get($a->player_id), 'max_weight_g');
-            $wb = data_get($catchStatsByPlayerId->get($b->player_id), 'max_weight_g');
-            $wa = $wa !== null && $wa !== '' ? (float) $wa : 0.0;
-            $wb = $wb !== null && $wb !== '' ? (float) $wb : 0.0;
-            $wc = $wb <=> $wa;
-            if ($wc !== 0) {
-                return $wc;
-            }
-
-            return $a->player_id <=> $b->player_id;
+            return self::compareStanding(
+                (int) $a->total_points,
+                self::maxWeightValue($statsA),
+                (int) data_get($statsA, 'catch_count', 0),
+                (int) $a->player_id,
+                (int) $b->total_points,
+                self::maxWeightValue($statsB),
+                (int) data_get($statsB, 'catch_count', 0),
+                (int) $b->player_id,
+            );
         })->values();
+    }
+
+    /**
+     * 釣果統計の max_weight_g を数値化（未計測・空は 0）。
+     *
+     * @param  array{catch_count: int, max_length_cm: string|null, max_weight_g: string|null}|null  $stats
+     */
+    public static function maxWeightValue(?array $stats): float
+    {
+        $w = data_get($stats, 'max_weight_g');
+
+        return $w !== null && $w !== '' ? (float) $w : 0.0;
     }
 
     /**

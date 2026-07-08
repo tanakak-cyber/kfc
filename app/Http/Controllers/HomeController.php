@@ -30,7 +30,7 @@ class HomeController extends Controller
             $seasonCatchStats = SeasonPlayerCatchStats::statsByPlayerId($currentSeason->id);
             $seasonParticipationStats = SeasonPlayerParticipationStats::statsByPlayerId($currentSeason->id);
             $seasonStandings = $this->matchResults->seasonPlayerStandingModels($currentSeason);
-            $seasonStandings = SeasonPlayerStandings::orderByPointsCatchCountMaxWeight($seasonStandings, $seasonCatchStats);
+            $seasonStandings = SeasonPlayerStandings::orderByPointsMaxWeightCatchCount($seasonStandings, $seasonCatchStats);
             $seasonStandings = SeasonPlayerStandings::attachDisplayRanks($seasonStandings);
         }
 

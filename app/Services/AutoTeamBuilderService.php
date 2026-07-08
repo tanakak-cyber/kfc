@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Models\Player;
 use App\Models\Season;
+use App\Support\SeasonPlayerCatchStats;
+use App\Support\SeasonPlayerStandings;
 use Illuminate\Support\Collection;
 
 class AutoTeamBuilderService
@@ -13,7 +15,11 @@ class AutoTeamBuilderService
     ) {}
 
     /**
-     * シーズン内ポイント降順、同点は name 昇順で並べ替えたプレイヤーコレクションを返す。
+     * 全順位ロジック共通の並び順で並べ替えたプレイヤーコレクションを返す。
+     *   1. 対象シーズンの合計ポイント 降順
+     *   2. シーズン内での最大重量（g）降順
+     *   3. シーズン通算釣果数 降順
+     *   （最終タイブレークは player_id 昇順）
      *
      * @param  Collection<int, Player>  $players
      * @return Collection<int, Player>
@@ -35,15 +41,23 @@ class AutoTeamBuilderService
             $points[$id] = (int) ($allTotals[(int) $id] ?? 0);
         }
 
-        return $players
-            ->sort(function (Player $a, Player $b) use ($points): int {
-                $pa = (int) ($points[$a->id] ?? 0);
-                $pb = (int) ($points[$b->id] ?? 0);
-                if ($pa !== $pb) {
-                    return $pb <=> $pa;
-                }
+        $catchStats = SeasonPlayerCatchStats::statsByPlayerId($seasonId);
 
-                return strcmp($a->name, $b->name);
+        return $players
+            ->sort(function (Player $a, Player $b) use ($points, $catchStats): int {
+                $statsA = $catchStats->get($a->id);
+                $statsB = $catchStats->get($b->id);
+
+                return SeasonPlayerStandings::compareStanding(
+                    (int) ($points[$a->id] ?? 0),
+                    SeasonPlayerStandings::maxWeightValue($statsA),
+                    (int) data_get($statsA, 'catch_count', 0),
+                    (int) $a->id,
+                    (int) ($points[$b->id] ?? 0),
+                    SeasonPlayerStandings::maxWeightValue($statsB),
+                    (int) data_get($statsB, 'catch_count', 0),
+                    (int) $b->id,
+                );
             })
             ->values();
     }

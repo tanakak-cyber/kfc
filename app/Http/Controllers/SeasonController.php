@@ -35,7 +35,7 @@ class SeasonController extends Controller
         $seasonParticipationStats = SeasonPlayerParticipationStats::statsByPlayerId($season->id);
 
         $standings = $this->matchResults->seasonPlayerStandingModels($season);
-        $standings = SeasonPlayerStandings::orderByPointsCatchCountMaxWeight($standings, $seasonCatchStats);
+        $standings = SeasonPlayerStandings::orderByPointsMaxWeightCatchCount($standings, $seasonCatchStats);
         $standings = SeasonPlayerStandings::attachDisplayRanks($standings);
 
         $seasonCatchMatchBlocks = SeasonCatchFeed::groupedByMatchAndRank($season->id);
